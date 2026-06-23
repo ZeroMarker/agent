@@ -29,6 +29,16 @@
 | QoderWork | 代码/协作 | 待补充定位。 |
 | WorkBuddy | 办公助手 | 待补充入口。 |
 
+## 原型与 UI 设计
+
+| 名称 | 方向 | 备注 |
+| --- | --- | --- |
+| Figma | 设计/原型 | 主流 UI 设计工具，支持协作、组件库、Dev Mode 交付。 |
+| Lovable | AI 应用生成 | 通过对话生成可部署的全栈 Web 应用，适合快速原型验证。 |
+| v0.app | AI UI 生成 | Vercel 出品，根据提示生成 React/Next.js UI 组件。 |
+| Google Stitch | AI 设计 | Google 推出的 AI 辅助设计工具，待补充详细功能。 |
+| Firebase Studio | 云端 AI 开发 | 原 Project IDX，浏览器内全栈 IDE，集成 Gemini，支持 Flutter/React/Next.js 等，一键部署至 Firebase。 |
+
 ## 待补充维度
 
 - 官方网站或 GitHub 地址
