@@ -158,6 +158,67 @@
 }
 ```
 
+## 工作空间文件
+
+工作空间目录：`~/.nanobot/workspace/`
+
+| 文件 | 用途 | 加载时机 |
+|------|------|----------|
+| `SOUL.md` | AI 人格设定、行为规则、常用命令速查 | 每次对话自动加载 |
+| `AGENTS.md` | 项目级指令、工作流约定 | 每次对话自动加载 |
+| `USER.md` | 用户信息、偏好 | 每次对话自动加载 |
+| `HEARTBEAT.md` | 定时任务清单 | heartbeat cron 触发时加载 |
+| `memory/MEMORY.md` | 长期记忆 | 按需加载 |
+
+### SOUL.md 示例
+
+```markdown
+# Soul
+
+I am nanobot 🐈, a personal AI assistant.
+
+## Core Principles
+
+- Solve by doing, not by describing what I would do.
+- Keep responses short unless depth is asked for.
+
+## 常用命令速查
+
+### tk（TikTok 直播录制）
+
+`tk` 是定义在 `~/scripts/ffmpeg.sh` 的函数。
+
+**正确用法**：
+​```bash
+source ~/scripts/ffmpeg.sh && tk <tiktok_username>
+​```
+
+**注意**：不要用 find_files 搜索 tk 命令，不要扫描 /root/tiktok 目录（会卡死）。
+```
+
+### AGENTS.md 示例
+
+```markdown
+# Agent Instructions
+
+## 工作流约定
+
+- 使用 `apply_patch` 更新任务列表
+- 使用 `edit_file` 做小范围精确替换
+- 使用 `write_file` 创建或重写整个文件
+
+## 常用命令
+
+### tk（TikTok 直播录制）
+...
+```
+
+### 关键提示
+
+- **SOUL.md 优先级最高**：放最重要的规则和命令速查
+- **避免大目录扫描**：在 SOUL.md 中明确禁止扫描已知大目录（如 `/root/tiktok`）
+- **命令定义提前告知**：如果 bot 需要调用自定义命令，在 SOUL.md 中写明用法，避免 bot 盲目搜索
+
 ## MCP 服务器
 
 ```json
