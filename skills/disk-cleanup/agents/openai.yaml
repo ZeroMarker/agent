@@ -1,0 +1,4 @@
+interface:
+  display_name: "Disk Cleanup"
+  short_description: "Clean disk space by removing system logs, temporary files, package manager caches, and old snap versions"
+  default_prompt: "Clean up my disk space to free storage"
