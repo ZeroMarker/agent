@@ -1,0 +1,3 @@
+display_name: mdbook
+short_description: mdbook init, entries, tags, deploy workflows
+default_prompt: Help me add entries to my mdbook project
