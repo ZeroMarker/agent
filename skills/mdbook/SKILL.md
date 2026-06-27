@@ -180,9 +180,24 @@ edit-url-template = "https://github.com/{owner}/{repo}/edit/main/{path}"
 
 ## 7. .gitignore
 
-```
+```gitignore
+# mdbook output
 SUMMARY.md
 book/
+
+# Rust / cargo
+target/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
 ```
 
 SUMMARY.md is auto-generated — never commit it.
