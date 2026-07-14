@@ -1,3 +1,7 @@
+---
+description: 使用 mcp_web_search 绕过 Google 反爬机制进行网页搜索。需要搜索最新信息、DuckDuckGo/Bing 结果不理想、或需要获取 Google 搜索结果时使用。
+---
+
 # Web Search Skill
 
 使用 mcp_web_search 绕过 Google 反爬机制进行网页搜索。
