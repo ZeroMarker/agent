@@ -9,6 +9,7 @@
 - [手机 Agent](phone/index.md)：移动端自动化与手机操作 Agent 项目。
 - [软件工具](software/blender.md)：具体软件的 Agent 化、自动化或创作流程笔记。
 - [工作流编排](workflow/index.md)：低代码、自动化编排和 Agent workflow 平台。
+- [lark-cli](lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明。
 
 ## 整理规范
 
