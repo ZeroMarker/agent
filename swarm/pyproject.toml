@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "langgraph-deepseek-swarm"
+version = "0.1.0"
+description = "A small supervisor-style LangGraph agent swarm using DeepSeek"
+requires-python = ">=3.11"
+dependencies = [
+  "langchain>=1.0,<2",
+  "langchain-openai>=1.0,<2",
+  "langgraph>=1.0,<2",
+  "pydantic>=2.7,<3",
+  "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[project.scripts]
+swarm = "swarm.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/swarm"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
