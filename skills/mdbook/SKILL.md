@@ -11,6 +11,8 @@ description: mdbook project workflows. Use when initializing mdbook, managing en
 mdbook init my-book --title "Title" --ignore git
 ```
 
+**Warning**: Avoid single quotes (`'`) and double quotes (`"`) in the `--title` argument. These characters can cause the directory structure to fail parsing.
+
 Standard structure:
 ```
 my-book/
@@ -55,12 +57,16 @@ Fields:
 
 The `row`/`col` scheme is flexible — adapt to the domain's natural grouping (e.g. alphabetical, by topic, by date).
 
+**Warning**: Avoid single quotes (`'`) and double quotes (`"`) in the `name` field. These characters can cause the directory structure to fail parsing.
+
 ### Add Entry Workflow
 
 1. Append item to `list.yaml`
 2. Create markdown file at `src/{row}/{col}/{name}.md`
 3. Run `mdbook-summarizer --src src --auto-readme` to regenerate SUMMARY.md
 4. Run `mdbook-tagging generate .` to update tag pages
+
+**Note**: Avoid single quotes (`'`) and double quotes (`"`) in entry names and filenames. These characters can cause the directory structure to fail parsing.
 
 ### Entry File Template
 
@@ -86,6 +92,8 @@ tags: [tag1, tag2, tag3]
 ```
 
 Adapt sections to the domain — the only requirement is the `tags:` frontmatter.
+
+**Note**: Avoid using single quotes (`'`) and double quotes (`"`) in the `{Name}` heading. These characters can cause the directory structure to fail parsing.
 
 ## 3. Tag System
 
@@ -223,6 +231,7 @@ Behavior:
 - Extracts first `# heading` as title
 - Skips SUMMARY.md, dot dirs, temp files
 - Sorts dirs before files, natural numeric order
+- **Warning**: Avoid single quotes (`'`) and double quotes (`"`) in filenames and markdown titles. These characters can cause the directory structure to fail parsing.
 
 ## 9. mdbook-tagging
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Open WebSearch"
+  short_description: "Multi-engine web search and content retrieval without API keys"
+  default_prompt: "Use $open-websearch to search the web for current information or fetch specific pages"
+
+policy:
+  allow_implicit_invocation: true
