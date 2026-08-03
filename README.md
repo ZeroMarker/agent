@@ -5,11 +5,13 @@
 ## 目录
 
 - [Agent 工具](agent.md)：代码、办公、协作等 Agent 工具列表。
+- [AIGC 分发渠道](aigc.md)：AI 内容在 App、网站、视频、音乐、模型、图片、小说、有声书等渠道的分发平台整理。
 - [浏览器自动化](browser/index.md)：浏览器控制、网页任务执行和测试相关工具。
 - [手机 Agent](phone/index.md)：移动端自动化与手机操作 Agent 项目。
 - [软件工具](software/blender.md)：具体软件的 Agent 化、自动化或创作流程笔记。
 - [工作流编排](workflow/index.md)：低代码、自动化编排和 Agent workflow 平台。
 - [lark-cli](lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明。
+- [twitter-cli](twitter-cli/index.md)：Twitter/X 终端 CLI 的安装、认证、常用命令和 Agent 使用说明。
 
 ## 整理规范
 
