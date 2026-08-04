@@ -65,3 +65,33 @@ Last activity before crash:
 ## Recommendations
 
 See [optimization-strategy.md](./optimization-strategy.md) for prevention measures.
+
+---
+
+# Second Incident: 2026-08-03 (system hang + hard reboot)
+
+## Incident Summary
+
+**Date**: 2026-08-03 ~14:47 UTC+8 (system unresponsive) → 15:18:29 reboot  
+**Nature**: System-wide memory exhaustion → hang → hard reboot (no graceful shutdown, no OOM message captured)
+
+## Evidence
+
+- Previous boot journal ends at 14:47:28; systemd-journald/systemd-resolved repeatedly reported "Under memory pressure, flushing caches" from 14:40–14:47
+- `sar -r` at 14:47:46: `%memused=79.67%`, kbavail only ~86MB
+- `sar -S` at 14:47:46: swap usage **99.99%** (up from 30% at 13:20)
+- nanobot last heartbeat logged 14:17:11 (14:47 heartbeat never fired — process already thrashing)
+- `last` shows no shutdown record before the 15:18:29 boot → crash/hang, not clean reboot
+- No kernel OOM message captured: journald itself was memory-starved
+
+## Root Cause
+
+Same class as the June 25 incident: 1.6GB RAM box exhausted. Combined load of nanobot (background cron/QQ bot) + multiple AI agent sessions (~500-700MB RSS each) saturated physical RAM and the 2GB swap. With `vm.swappiness=10`, the kernel resisted swapping until too late, then the whole system thrashed and hung before any OOM kill could be logged.
+
+## Resolution
+
+Preventive configuration applied and recorded in [optimization-strategy.md](./optimization-strategy.md):
+- swap 2GB → 3GB, `vm.swappiness` 10 → 60
+- nanobot memory footprint reduced (context 32768, maxMessages 60, consolidation 0.3, idle-compact 30min)
+- nanobot now managed by systemd with `MemoryHigh=800M / MemoryMax=1G`, `Restart=always`, `OOMScoreAdjust=-500`
+- memory monitor + log rotation deployed

@@ -222,6 +222,8 @@ async with lock, gate:  # 同时获取session锁和并发信号量
 | 标准 | 3 | 默认值，平衡性能和资源 |
 | 高性能 | 5-10 | 增加并发，提高吞吐量 |
 
+> 注：2026-08-03 起，生产环境通过 systemd 服务设置 `NANOBOT_MAX_CONCURRENT_REQUESTS=2`（1.6GB 内存机器），见 [optimization-strategy.md](optimization-strategy.md)。
+
 ## 子代理集成
 
 ### 子代理结果路由

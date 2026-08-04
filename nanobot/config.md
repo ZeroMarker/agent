@@ -12,13 +12,15 @@
       "model": "deepseek-v4-flash",
       "provider": "deepseek",
       "temperature": 0.7,
-      "maxTokens": 8192,
-      "contextWindowTokens": 65536,
+      "maxTokens": 4096,
+      "contextWindowTokens": 32768,
       "maxToolIterations": 200,
-      "maxMessages": 120,
+      "maxMessages": 60,
+      "consolidationRatio": 0.3,
+      "idleCompactAfterMinutes": 30,
       "botName": "nanobot",
       "botIcon": "🐈",
-      "timezone": "Asia/Shanghai",
+      "timezone": "UTC",
       "dream": {
         "enabled": true,
         "intervalH": 2
@@ -33,13 +35,17 @@
 | `model` | 模型名称 | `anthropic/claude-opus-4-5` |
 | `provider` | 提供者 | `auto` |
 | `temperature` | 温度 | `0.1` |
-| `maxTokens` | 最大输出 token | `8192` |
-| `contextWindowTokens` | 上下文窗口大小 | `65536` |
+| `maxTokens` | 最大输出 token | `4096` |
+| `contextWindowTokens` | 上下文窗口大小 | `32768` |
 | `maxToolIterations` | 最大工具调用次数 | `200` |
-| `maxMessages` | 最大消息数 | `120` |
+| `maxMessages` | 最大消息数 | `60` |
+| `consolidationRatio` | 历史消息压缩比例 | `0.3` |
+| `idleCompactAfterMinutes` | 空闲自动压缩间隔（分钟），`0` 关闭 | `0` |
 | `botName` | 机器人名称 | `nanobot` |
 | `botIcon` | 机器人图标 | `🐈` |
 | `timezone` | 时区 | `UTC` |
+
+> 注：2026-08-03 因低内存（1.6GB）机器 OOM，已将 `contextWindowTokens` 65536→32768、`maxMessages` 120→60、`consolidationRatio` 0.5→0.3，并启用 `idleCompactAfterMinutes: 30`。详见 [optimization-strategy.md](optimization-strategy.md)。
 
 ## 模型提供者
 
@@ -148,7 +154,7 @@
 {
   "gateway": {
     "host": "127.0.0.1",
-    "port": 18790,
+    "port": 18791,
     "heartbeat": {
       "enabled": true,
       "intervalS": 1800,
@@ -157,6 +163,8 @@
   }
 }
 ```
+
+> 注：2026-08-03 起网关端口由 `18790` 改为 `18791`，因 `18790` 已被 picoclaw gateway 占用。
 
 ## 工作空间文件
 

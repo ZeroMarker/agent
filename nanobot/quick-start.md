@@ -88,6 +88,21 @@ nanobot gateway -c ~/.nanobot/config.json
 nanobot serve -c ~/.nanobot/config.json
 ```
 
+### 生产环境：systemd 托管（推荐）
+
+2026-08-03 起，生产环境使用 systemd 服务托管网关，支持内存限制与崩溃自动重启：
+
+```bash
+systemctl start nanobot         # 启动
+systemctl enable nanobot        # 开机自启
+systemctl status nanobot        # 查看状态
+journalctl -u nanobot -f        # 实时日志
+```
+
+Health check：`curl http://127.0.0.1:18791/health`
+
+服务配置见 `/etc/systemd/system/nanobot.service`，含 `MemoryHigh=800M / MemoryMax=1G / OOMScoreAdjust=-500` 与 `Restart=always`。更多说明见 [optimization-strategy.md](optimization-strategy.md)。
+
 ### 直接对话测试
 
 ```bash

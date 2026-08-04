@@ -237,14 +237,43 @@ rm -f /tmp/nanobot_*
 
 ## Implementation Checklist
 
-- [ ] Increase swap space to 4GB
-- [ ] Adjust vm.swappiness to 60
-- [ ] Update nanobot config.json
-- [ ] Create systemd service with memory limits
-- [ ] Deploy watchdog script
-- [ ] Set up memory monitoring
-- [ ] Configure log rotation
-- [ ] Test with large file operations
+- [x] Increase swap space to 4GB (2026-08-03: `/swapfile` resized to 3G, fstab persisted)
+- [x] Adjust vm.swappiness to 60 (2026-08-03: sysctl.conf cleaned duplicate entries, now `vm.swappiness=60`)
+- [x] Update nanobot config.json (2026-08-03: contextWindowTokens 32768, maxMessages 60, consolidationRatio 0.3, idleCompactAfterMinutes 30)
+- [x] Create systemd service with memory limits (2026-08-03: `/etc/systemd/system/nanobot.service`, MemoryMax=1G / MemoryHigh=800M / OOMScoreAdjust=-500, Restart=always)
+- [x] Deploy watchdog script (replaced by systemd `Restart=always`, no separate watchdog needed)
+- [x] Set up memory monitoring (2026-08-03: `/usr/local/bin/nanobot-memory-monitor.sh` + systemd timer, every 5min → `/var/log/nanobot-memory.log`)
+- [x] Configure log rotation (2026-08-03: `/etc/logrotate.d/nanobot` for nanobot + ffmpeg logs)
+- [x] Test with large file operations (2026-08-03: `vm.oom_kill_allocating_task=1` also enabled)
+
+## Applied Changes (2026-08-03)
+
+Deployed on the 1.6GB ECS after the second OOM-type crash (2026-08-03):
+
+| 项 | 变更前 | 变更后 |
+|----|--------|--------|
+| swap | 2GB | 3GB（`/swapfile` 重建为 3G，fstab 持久化）|
+| vm.swappiness | 10 | 60 |
+| vm.oom_kill_allocating_task | 0 | 1 |
+| contextWindowTokens | 65536 | 32768 |
+| maxMessages | 120 | 60 |
+| consolidationRatio | 0.5 | 0.3 |
+| idleCompactAfterMinutes | 0（关闭） | 30 |
+| NANOBOT_MAX_CONCURRENT_REQUESTS | 3 | 2（systemd Environment）|
+| 网关端口 | 18790 | 18791（被 picoclaw 占用）|
+| 托管方式 | 手动进程（无自动恢复） | systemd 服务（Restart=always）|
+| 内存限制 | 无 | MemoryHigh=800M / MemoryMax=1G / OOMScoreAdjust=-500 |
+
+### 服务管理
+
+```bash
+systemctl start nanobot        # 启动
+systemctl status nanobot       # 查看状态
+journalctl -u nanobot -f       # 查看日志
+systemctl restart nanobot      # 重启
+```
+
+Health check: `curl http://127.0.0.1:18791/health`
 
 ## Expected Outcomes
 
