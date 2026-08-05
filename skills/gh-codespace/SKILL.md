@@ -147,6 +147,36 @@ gh codespace ssh -c <codespace名> -- bash -s < /tmp/gh_login.sh
 
 **预防**：push 前先 `gh auth status` 检查；或重建 codespace；或在 codespace 内交互式 `gh auth login`。
 
+## 多仓库推送权限（Codespaces 原生机制）
+
+**现象**：codespace 内 `git push` 到**非源仓库**（创建 codespace 之外的仓库）报 `Permission to <owner>/<repo>.git denied`（403）；REST API 的 `permissions` 字段显示有权限，但实际 push 仍 403（codespace token 是细粒度令牌，git 协议层只授权源仓库）。
+
+**解决**（官方原生机制）：在**源仓库**中添加 `.devcontainer/devcontainer.json`，用 `repositories` 对象声明需要额外权限的仓库及对应权限：
+
+```json
+{
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "<owner>/<repo>": {
+          "permissions": {
+            "contents": "write"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+步骤：
+1. 在源仓库（即用来创建当前 Codespace 的那个仓库）中创建 `.devcontainer` 目录，新建 `devcontainer.json`。
+2. 在 `devcontainer.json` 中使用 `repositories` 对象指定需要额外权限的仓库及对应的权限（`contents: write` 即可 push；按需加 `issues`、`pull_requests` 等）。
+3. 提交并推送该文件到源仓库。
+4. **重建 codespace**（token 在创建时铸造，重建后新 token 才会包含新权限；可能需授权确认，同一 owner 通常自动放行）。
+
+> 优先级：多仓库问题优先用 devcontainer `repositories` 机制，而不是注入 ghp token（见上节）；后者仅作 token 过期临时手段。
+
 ## 代码推送流程
 
 ```bash

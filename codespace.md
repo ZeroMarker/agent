@@ -166,9 +166,44 @@ gh codespace ssh -c <codespace名> -- bash -c 'cd ~/guomi && pi -p "请审查这
 
 验证：`mix test` 114 个全过、编译 0 警告、format/credo 通过、OpenSSL 交叉验证一致。
 
-## 6. 踩坑记录
+## 6. 多仓库权限（Codespaces 原生机制）
 
-### 6.1 Codespace 内 gh 未登录，无法 push
+Codespace 创建时注入的 `GITHUB_TOKEN` 是细粒度令牌，**git 协议层只授权源仓库**（即创建该 codespace 的仓库）。推送到其他仓库会报 `Permission to <owner>/<repo>.git denied`（403），即使 REST API 的 `permissions` 字段显示有 push 权限——该字段对 codespace token 有误导性，以实际 `git push` 结果为准。
+
+### 在源仓库中添加 devcontainer.json 文件
+
+首先，在你的**源仓库**（即用来创建当前 Codespace 的那个仓库）中，创建一个 `.devcontainer` 目录，并在该目录下新建一个 `devcontainer.json` 文件。
+
+编辑 `devcontainer.json` 文件：在 `devcontainer.json` 文件中，使用 `repositories` 对象来指定需要额外权限的仓库及对应的权限：
+
+```json
+{
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "<owner>/<repo>": {
+          "permissions": {
+            "contents": "write"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+- `contents: write` 即可支持 `git push`；按需可追加 `issues`、`pull_requests` 等细粒度权限。
+- 提交并推送该文件到源仓库。
+
+### 生效条件与注意
+
+- 权限变更在 **Codespace 重建**（重新创建 codespace）时生效——token 在创建时铸造，当前会话的 token 不包含新权限；重建后 `git push` 目标仓库**原生可用**，无需任何额外凭据配置。
+- 打开新 codespace 时 GitHub 可能弹出额外仓库授权确认（同一 owner 通常自动放行）。
+- 与 7.1 的 token 注入方案对比：devcontainer `repositories` 是**官方原生机制**，无需维护 ghp token；7.1 仅作为 token 过期时的临时手段。
+
+## 7. 踩坑记录
+
+### 7.1 Codespace 内 gh 未登录，无法 push
 
 - 现象：`gh auth status` 显示 `You are not logged into any GitHub hosts`，`git push` 失败。
 - 原因：Codespace 创建时注入的临时 `GITHUB_TOKEN` 有时效（约 8 小时）。该 codespace 创建后长期 Shutdown，token 已过期；重启后引导程序不会重新注入，导致 `gh` 无凭据。
@@ -184,15 +219,15 @@ gh codespace ssh -c <codespace名> -- bash -s < /tmp/gh_login.sh   # 内容: gh 
 
 - 预防：push 前先 `gh auth status`；或直接重建 codespace 让引导程序注入新 token；或在 codespace 内交互式 `gh auth login`。
 
-### 6.2 ssh 传参引号被剥离
+### 7.2 ssh 传参引号被剥离
 
 `gh codespace ssh -- bash -c '...'` 中单引号可能丢失（表现为命令行为怪异、报 usage 帮助等）。规避：写脚本 + `bash -s < script.sh`，或避免复杂引号。
 
-### 6.3 git 仓库报 "not a git repository"
+### 7.3 git 仓库报 "not a git repository"
 
 codespace 默认 shell 环境下直接 `cd <repo> && git status` 偶发失败（工作目录未切换成功）。规避：用绝对路径 + `git -C <path>`，或 `GIT_DIR=/abs/.git GIT_WORK_TREE=/abs`。
 
-## 7. 待办 / 后续
+## 8. 待办 / 后续
 
 - [ ] 定期 `gh auth status` 检查 codespace 登录态
 - [ ] 观察 guomi 推送后 CI 结果（run `30995116577`）
