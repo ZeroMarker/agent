@@ -41,7 +41,70 @@ gh codespace cp /local/path -c zany-zebra-959667wqvxqcx7qv remote:.pi/agent/auth
 
 > ⚠️ 经验：`gh codespace ssh -- bash -c '复杂命令'` 的单引号可能被剥离导致行为怪异（例如 `bash -c export` 会打印全部环境变量）。可靠做法是写脚本文件，用 `gh codespace ssh -- bash -s < script.sh` 执行。
 
-## 3. pi agent 安装与授权
+## 3. 直接 SSH 连接（OpenSSH 直连，Windows/Git Bash）
+
+配置完成后可像普通主机一样直连，无需每次交互选择 codespace：
+
+```bash
+ssh agent                                   # 短别名（仓库名）
+ssh cs.zany-zebra-959667wqvxqcx7qv.main     # gh 生成的标准主机名
+scp file agent:/workspaces/agent/           # 传输文件同样可用
+```
+
+### 配置步骤
+
+```bash
+# 1. 生成 OpenSSH 配置（主机条目为 cs.<codespace名>.<分支>）
+gh codespace ssh --config > ~/.ssh/codespaces
+
+# 2. 在 ~/.ssh/config 末尾追加 Include（注意独立成行，不要拼到上一行末尾）
+cat >> ~/.ssh/config <<'EOF'
+
+Match all
+Include ~/.ssh/codespaces
+EOF
+
+# 3.（可选）加短别名：Host 用仓库名，指向同一 ProxyCommand
+```
+
+```text
+Host agent
+	HostName cs.zany-zebra-959667wqvxqcx7qv.main
+	User codespace
+	ProxyCommand "C:/Program Files/GitHub CLI/gh.exe" cs ssh -c zany-zebra-959667wqvxqcx7qv --stdio -- -i "C:/Users/ttft3/.ssh/codespaces.auto"
+	UserKnownHostsFile=/dev/null
+	StrictHostKeyChecking no
+	LogLevel quiet
+	ControlMaster auto
+	IdentityFile C:/Users/ttft3/.ssh/codespaces.auto
+```
+
+> 原理：连接走 `ProxyCommand` → `gh.exe cs ssh --stdio` 隧道，认证由 gh CLI 完成，无需手动注册密钥。若报 `failed to read public key file: ...codespaces.auto.pub`，先手动生成密钥对：
+> `ssh-keygen -t ed25519 -f ~/.ssh/codespaces.auto -N ""`
+
+> ⚠️ Windows/Git Bash 坑：`gh codespace ssh --config` 生成的是反斜杠路径（`C:\Program Files\...`），MSYS `/bin/sh` 执行 ProxyCommand 时把反斜杠当转义符（报 `exec: C:Program: not found`）。必须改成正斜杠 + 引号（如上）。重建配置用脚本：`bash ~/.ssh/refresh-codespaces-ssh.sh`。
+
+### 刷新脚本 ~/.ssh/refresh-codespaces-ssh.sh
+
+```bash
+#!/bin/bash
+# Regenerate ~/.ssh/codespaces with Git Bash compatible (forward-slash) paths.
+# Usage: bash ~/.ssh/refresh-codespaces-ssh.sh
+set -euo pipefail
+
+gh codespace ssh --config | sed \
+  -e 's#C:\\Program Files\\GitHub CLI\\gh.exe#"C:/Program Files/GitHub CLI/gh.exe"#g' \
+  -e 's#C:\\Users\\ttft3\\.ssh#C:/Users/ttft3/.ssh#g' \
+  > ~/.ssh/codespaces
+
+echo "Updated ~/.ssh/codespaces"
+echo "Available hosts:"
+grep -E '^Host ' ~/.ssh/codespaces
+```
+
+> 注意：`Host agent` 短别名硬编码了 codespace 名，codespace 删除重建后需同步更新 `~/.ssh/config` 中对应段落（或只用完整主机名）。
+
+## 4. pi agent 安装与授权
 
 Codespace 内已安装 pi（版本 0.83.0，与本地一致）：
 
@@ -83,7 +146,7 @@ gh codespace ssh -c <codespace名> -- bash -c 'cat > ~/.pi/agent/models-store.js
 gh codespace ssh -c <codespace名> -- bash -c 'cd ~/guomi && pi -p "请审查这个项目并修复问题"'
 ```
 
-## 4. 项目操作记录
+## 5. 项目操作记录
 
 ### guomi（Elixir 国密算法库）
 
@@ -103,9 +166,9 @@ gh codespace ssh -c <codespace名> -- bash -c 'cd ~/guomi && pi -p "请审查这
 
 验证：`mix test` 114 个全过、编译 0 警告、format/credo 通过、OpenSSL 交叉验证一致。
 
-## 5. 踩坑记录
+## 6. 踩坑记录
 
-### 5.1 Codespace 内 gh 未登录，无法 push
+### 6.1 Codespace 内 gh 未登录，无法 push
 
 - 现象：`gh auth status` 显示 `You are not logged into any GitHub hosts`，`git push` 失败。
 - 原因：Codespace 创建时注入的临时 `GITHUB_TOKEN` 有时效（约 8 小时）。该 codespace 创建后长期 Shutdown，token 已过期；重启后引导程序不会重新注入，导致 `gh` 无凭据。
@@ -121,15 +184,15 @@ gh codespace ssh -c <codespace名> -- bash -s < /tmp/gh_login.sh   # 内容: gh 
 
 - 预防：push 前先 `gh auth status`；或直接重建 codespace 让引导程序注入新 token；或在 codespace 内交互式 `gh auth login`。
 
-### 5.2 ssh 传参引号被剥离
+### 6.2 ssh 传参引号被剥离
 
 `gh codespace ssh -- bash -c '...'` 中单引号可能丢失（表现为命令行为怪异、报 usage 帮助等）。规避：写脚本 + `bash -s < script.sh`，或避免复杂引号。
 
-### 5.3 git 仓库报 "not a git repository"
+### 6.3 git 仓库报 "not a git repository"
 
 codespace 默认 shell 环境下直接 `cd <repo> && git status` 偶发失败（工作目录未切换成功）。规避：用绝对路径 + `git -C <path>`，或 `GIT_DIR=/abs/.git GIT_WORK_TREE=/abs`。
 
-## 6. 待办 / 后续
+## 7. 待办 / 后续
 
 - [ ] 定期 `gh auth status` 检查 codespace 登录态
 - [ ] 观察 guomi 推送后 CI 结果（run `30995116577`）

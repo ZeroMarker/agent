@@ -1,7 +1,7 @@
 ---
 name: gh-codespace
 version: 1.0.0
-description: "GitHub Codespace 操作：查看/启动/停止/连接 codespace、在 codespace 内执行命令与传输文件、安装配置 pi agent（含 API key 授权）、gh 登录态修复（token 过期）、以及 push 代码到 GitHub。当用户提到 codespace、云端开发容器、需要在云端环境跑 pi/审查项目/推送代码时使用。不负责：飞书相关操作（走 lark-*）、pi 本身的扩展/主题开发（走 pi docs）。"
+description: "GitHub Codespace 操作：查看/启动/停止/连接 codespace（含 OpenSSH 直连 `ssh <host>` 配置）、在 codespace 内执行命令与传输文件、安装配置 pi agent（含 API key 授权）、gh 登录态修复（token 过期）、以及 push 代码到 GitHub。当用户提到 codespace、云端开发容器、直连 ssh、需要在云端环境跑 pi/审查项目/推送代码时使用。不负责：飞书相关操作（走 lark-*）、pi 本身的扩展/主题开发（走 pi docs）。"
 metadata:
   requires:
     bins: ["gh"]
@@ -40,6 +40,49 @@ gh codespace delete -c <codespace名>
 # VS Code 打开
 gh codespace code -c <codespace名>
 ```
+
+## 直接 SSH 连接（OpenSSH 直连，Windows/Git Bash）
+
+配置一次后即可像普通主机直连，无需交互选择：
+
+```bash
+ssh agent                                   # 短别名（仓库名）
+ssh cs.zany-zebra-959667wqvxqcx7qv.main     # gh 生成的标准主机名
+scp file agent:/workspaces/agent/           # scp 同样可用
+```
+
+### 一次性配置
+
+```bash
+# 1. 生成 OpenSSH 配置（主机条目为 cs.<codespace名>.<分支>）
+gh codespace ssh --config > ~/.ssh/codespaces
+
+# 2. ~/.ssh/config 末尾追加（注意独立成行，勿拼到上一行末尾）
+cat >> ~/.ssh/config <<'EOF'
+
+Match all
+Include ~/.ssh/codespaces
+EOF
+
+# 3. 可选短别名：Host 用仓库名（配置见下）
+```
+
+```text
+Host agent
+	HostName cs.zany-zebra-959667wqvxqcx7qv.main
+	User codespace
+	ProxyCommand "C:/Program Files/GitHub CLI/gh.exe" cs ssh -c zany-zebra-959667wqvxqcx7qv --stdio -- -i "C:/Users/ttft3/.ssh/codespaces.auto"
+	UserKnownHostsFile=/dev/null
+	StrictHostKeyChecking no
+	LogLevel quiet
+	ControlMaster auto
+	IdentityFile C:/Users/ttft3/.ssh/codespaces.auto
+```
+
+> **原理**：连接走 `ProxyCommand` → `gh.exe cs ssh --stdio` 隧道，认证交给 gh CLI，无需手动注册密钥。
+> ⚠️ **Windows/Git Bash 坑**：生成配置是反斜杠路径（`C:\Program Files\...`），MSYS `/bin/sh` 执行 ProxyCommand 时把反斜杠当转义符（报 `exec: C:Program: not found`）→ 必须改成正斜杠 + 引号（如上）。
+> 报 `failed to read public key file` → 先手动生成密钥：`ssh-keygen -t ed25519 -f ~/.ssh/codespaces.auto -N ""`。
+> 重建配置：`bash ~/.ssh/refresh-codespaces-ssh.sh`（内含 sed 正斜杠修复）。注意 `Host agent` 别名硬编码 codespace 名，删除重建后需同步更新。
 
 ## ⚠️ 关键坑：远端命令执行
 
