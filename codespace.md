@@ -201,6 +201,20 @@ Codespace 创建时注入的 `GITHUB_TOKEN` 是细粒度令牌，**git 协议层
 - 打开新 codespace 时 GitHub 可能弹出额外仓库授权确认（同一 owner 通常自动放行）。
 - 与 7.1 的 token 注入方案对比：devcontainer `repositories` 是**官方原生机制**，无需维护 ghp token；7.1 仅作为 token 过期时的临时手段。
 
+### 备用方案：用注入的 ghp token（当前会话即时可用）
+
+若不想等重建 codespace，可临时用**已注入的 ghp token**（`~/.config/gh/hosts.yml` 中的 `ZeroMarker` 全权限 token，对 agent/guomi 等仓库均有 push 权限）。
+
+**为什么默认用不上**：codespace 环境变量 `GITHUB_TOKEN`（ghu_，仅授权源仓库）在 `gh` 凭据解析中**优先级高于** hosts.yml 里的 ghp token，git 默认拿到的是前者。
+
+**用法**：给 git 命令临时清空环境 token，让 `gh auth git-credential` 回退到 hosts.yml：
+
+```bash
+GITHUB_TOKEN= git push origin main        # guomi 等非源仓库实测可用（Everything up-to-date）
+```
+
+> 说明：这只是当前会话的临时手段，且依赖 hosts.yml 里的 ghp token 未过期；一劳永逸的方案仍是本节的 devcontainer `repositories` + 重建 codespace。
+
 ## 7. 踩坑记录
 
 ### 7.1 Codespace 内 gh 未登录，无法 push

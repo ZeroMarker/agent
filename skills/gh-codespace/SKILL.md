@@ -177,6 +177,14 @@ gh codespace ssh -c <codespace名> -- bash -s < /tmp/gh_login.sh
 
 > 优先级：多仓库问题优先用 devcontainer `repositories` 机制，而不是注入 ghp token（见上节）；后者仅作 token 过期临时手段。
 
+**备用方案（当前会话即时可用）**：等不及重建 codespace 时，可用 `~/.config/gh/hosts.yml` 中已注入的 `ZeroMarker` ghp token（对 agent/guomi 均有 push 权限）。原因是 codespace 环境变量 `GITHUB_TOKEN`（ghu_，仅授权源仓库）在 gh 凭据解析中优先于 hosts.yml，导致默认拿不到 ghp token；临时清空环境 token 即可让 gh 回退到 hosts.yml：
+
+```bash
+GITHUB_TOKEN= git push origin main   # guomi 等非源仓库实测可用
+```
+
+> 临时手段：依赖 ghp token 未过期；一劳永逸仍走上面的 devcontainer 机制 + 重建 codespace。
+
 ## 代码推送流程
 
 ```bash
