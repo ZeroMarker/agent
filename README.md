@@ -12,6 +12,7 @@
 - [工作流编排](workflow/index.md)：低代码、自动化编排和 Agent workflow 平台。
 - [lark-cli](lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明。
 - [twitter-cli](twitter-cli/index.md)：Twitter/X 终端 CLI 的安装、认证、常用命令和 Agent 使用说明。
+- [Codespace](codespace.md)：GitHub Codespace 的查看、启动、连接、pi agent 授权与项目操作笔记。
 
 ## 整理规范
 
