@@ -13,6 +13,7 @@
 - [lark-cli](lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明。
 - [twitter-cli](twitter-cli/index.md)：Twitter/X 终端 CLI 的安装、认证、常用命令和 Agent 使用说明。
 - [Codespace](codespace.md)：GitHub Codespace 的查看、启动、连接、pi agent 授权与项目操作笔记。
+- [Tavily](tavily.md)：AI Agent 的搜索/提取/爬取/研究 API 使用笔记。
 
 ## 整理规范
 
