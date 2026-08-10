@@ -59,3 +59,6 @@ dkms.conf
 
 # Clash for Linux 源码克隆（仅本地参考）
 /clash-for-linux/
+
+# Jina Reader 源码克隆（仅本地参考）
+/reader/
