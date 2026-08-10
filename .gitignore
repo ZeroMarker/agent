@@ -53,3 +53,6 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Cloudflare Computer 源码克隆（仅本地参考）
+/computer/
