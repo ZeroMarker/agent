@@ -14,6 +14,7 @@
 - [twitter-cli](twitter-cli/index.md)：Twitter/X 终端 CLI 的安装、认证、常用命令和 Agent 使用说明。
 - [Codespace](codespace.md)：GitHub Codespace 的查看、启动、连接、pi agent 授权与项目操作笔记。
 - [Tavily](tavily.md)：AI Agent 的搜索/提取/爬取/研究 API 使用笔记。
+- [Jina](jina.md)：Jina Reader/Search —— URL 转 Markdown 与联网搜索 API 笔记（含 Cloudflare 站绕过实战）。
 
 ## 整理规范
 

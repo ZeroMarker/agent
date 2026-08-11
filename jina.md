@@ -271,6 +271,32 @@ npm run dev                 # 或 VSCode F5
 
 都不行就提 issue，附 URL + 用过的请求头。
 
+### 实战：Cloudflare 保护站的绕过（namu.wiki 案例，2026-08）
+
+**现象**：r.jina.ai 直连 `namu.wiki`（韩国百科，Cloudflare 防护）稳定返回 403 /「Just a moment...」验证页；`x-engine: browser`、`x-no-cache`、多次重试均无效。
+
+**另两个死路**：
+- `s.jina.ai` 免 key 不可用，返回 `401 AuthenticationRequiredError`（需 `Authorization` 头）；
+- Wayback Machine 无该页快照（namu 页面经常被删/换域），且其 API 对无 key 匿名调用限流很凶（429）。
+
+**突破**：让 jina 去读 **Google 翻译缓存**而不是源站——Google 会把部分被墙/被防护的站点转码缓存到 `<domain 点号改横线>.translate.goog`：
+
+```bash
+# 直接读 Google 对 namu.wiki 的翻译缓存（中文版）
+curl 'https://r.jina.ai/https://namu-wiki.translate.goog/w/%EC%95%BC%EC%82%B4?_x_tr_sl=ko&_x_tr_tl=zh-CN&_x_tr_hl=zh-CN'
+
+# 或走 translate.google.com 旧式代理（不一定成，但失败响应里常给出可用的 translate.goog 链接）
+curl 'https://r.jina.ai/https://translate.google.com/translate?sl=ko&tl=zh-CN&u=<urlencoded 目标页>'
+```
+
+要点：
+- `translate.goog` 域名不在目标站 Cloudflare 防护范围内，jina 可正常抓取，返回自动翻译后的 Markdown（中文），对中文资料库足够用；
+- 输出带大量导航/页脚噪音，可 `-H 'x-target-selector: <正文选择器>'` 或抓回后自行裁剪；
+- 翻译质量：一般可用；专有名词会音译（如 야살 → 亚萨尔），关键数字/日期准确；
+- 该缓存来自 Google 爬虫，页面更新滞后于源站，适合一次性资料提取，不适合实时监控。
+
+**通用思路**：源站被 Cloudflare/反爬挡住时，先问「哪个第三方已经有该站的可读副本」——Google 翻译缓存（translate.goog）、Wayback Machine、站内 raw/API 端点、官方镜像站；然后让 jina 去读副本而非源站。
+
 ## 9. 时间线与版本要点
 
 - 2024-04 发布，r.jina.ai 上线（Jina AI 第一个 SaaS API）。
