@@ -81,8 +81,8 @@ weibo upgrade               # 检查并安装更新
 ### 微博内容
 
 ```bash
-# 首页信息流（自己 + 关注的人）
-weibo statuses friends_timeline/biz --count 5
+# 当前登录用户发布的微博（首页信息流命令 friends_timeline/biz 已下线，用这个替代）
+weibo statuses user_timeline/biz --count 5
 
 # 按 ID 批量获取微博
 weibo statuses show_batch/biz --ids 1234567890
@@ -98,17 +98,19 @@ weibo comments to_me/biz
 # 按昵称批量查询用户（已知昵称时推荐）
 weibo users show_batch/other --screen_name 来去之间
 
-# 查看单个用户
+# 查看当前登录用户信息
 weibo users show/biz
 
-# 关注列表
+# 关注列表（--uid UID | --screen_name 昵称）
 weibo friendships friends/biz
 ```
 
 ### 搜索
 
 ```bash
-weibo search statuses/limited --q 关键词
+weibo search statuses/limited --q 关键词   # 搜索含关键词的微博
+weibo search hot_word/biz                  # 微博热搜主榜
+weibo search hot_word_cate/biz             # 搜索分类榜单
 ```
 
 ### 浏览命令目录
