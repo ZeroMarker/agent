@@ -176,6 +176,36 @@ git clone git@github.com:public-clis/bilibili-cli.git .agents/skills/bilibili-cl
 | `无法提取 BV 号` / `InvalidBvidError` | BV 号格式错误 | 必须是 `BV` + 10 位字母数字 |
 | `NetworkError` | 网络问题 | 检查网络；使用代理时确保支持目标域名 |
 | `当前登录凭证不支持写操作` | Cookie 缺少 `bili_jct` | 重新 `bili login` 获取完整写权限 |
+| `登录成功但依然未登录` | B 站扫码登录接口改版：`data.url` 变为 crossDomain ticket 链接，SESSDATA 改由 `Set-Cookie` 响应头下发，旧版 `bilibili-api-python` 仍在 URL 里解析 cookie 导致保存空凭证 | 见下方「扫码登录修复」 |
+
+## 扫码登录修复（2026-08 B 站改版）
+
+**症状**：`bili login` 显示「登录成功！凭证已保存」，但 `~/.bilibili-cli/credential.json` 中 `sessdata`、`bili_jct` 为空，`bili status` 仍报未登录。
+
+**根因**：B 站将 WEB 端扫码登录轮询接口的 `data.url` 从「带 cookie 参数的回跳链接」改为 `https://passport.biligame.com/x/passport-login/web/crossDomain?ticket=...` 跨域票据链接；真正的 `SESSDATA` / `bili_jct` / `DedeUserID` 需跟随该链接（携带浏览器 UA），从 `Set-Cookie` 响应头获取。旧版 `bilibili-api-python`（≤17.4.2，源码仓库已关停归档）仍在 URL query 中解析 cookie，得到全空值。
+
+**修复方案**：`bili_cli/auth.py` 重新实现 WEB 扫码轮询并 monkey-patch `QrCodeLogin.check_state`（模块导入时安装），在登录完成**瞬间**解析响应、构建凭证：
+
+- 轮询等待状态（86101/86090/86038）与 B 站状态码一一对应，行为不变；
+- 旧格式（URL 带 `SESSDATA=` 等 cookie 参数）按原逻辑解析，完全兼容；
+- 新格式（crossDomain 票据链接）用浏览器 UA 跟随链接，从 `Set-Cookie` 响应头提取 cookie；
+- **必须**在 `check_state` 内同步获取——事后重 poll 不可行（`qrcode_key` 登录成功即失效，返回空 url）；
+- 二维码生成（`generate_qrcode`）不受影响。
+
+**状态**：
+
+- 上游 PR：[public-clis/bilibili-cli#27](https://github.com/public-clis/bilibili-cli/pull/27)（fork: `ZeroMarker/bilibili-cli`，commit `6962d5b`，OPEN 未合并）
+- 本地修复仓库：`~/bilibili-cli`（含 `bili_cli/auth.py` 修改 + 9 个新增单元测试，213 passed，ruff 干净）
+- 端到端验证：原版 bilibili-api-python 17.4.2（含 bug）+ 修复后 auth.py → 扫码登录 → 凭证完整保存 → `bili status` `authenticated: true`
+
+**本地环境**：修复已同步到安装目录（`~/.local/share/uv/tools/bilibili-cli/lib/python3.12/site-packages/bili_cli/auth.py`），`bili login` / `bili status` / 需登录功能（收藏夹、稍后再看、历史等）均已实测正常。
+
+**升级提醒**：`uv tool upgrade bilibili-cli` 会覆盖安装目录的 `auth.py`。若上游尚未合并 PR，升级后重新同步：
+
+```bash
+cp ~/bilibili-cli/bili_cli/auth.py \
+  ~/.local/share/uv/tools/bilibili-cli/lib/python3.12/site-packages/bili_cli/auth.py
+```
 
 ## 参考链接
 
