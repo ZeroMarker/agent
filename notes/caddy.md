@@ -5,7 +5,69 @@
 > 仓库：https://github.com/caddyserver/caddy
 > 一句话：Caddy 是一个默认启用自动 HTTPS、配置简洁的 Web 服务器和反向代理。
 
-## 1. 适用场景
+## 1. 当前环境
+
+| 项目 | 值 |
+| --- | --- |
+| Caddy 版本 | `2.6.2` |
+| 运行方式 | systemd 服务 `caddy.service`（已启用，开机自启） |
+| 配置文件 | `/etc/caddy/Caddyfile` |
+| 数据目录 | `/var/lib/caddy`（证书、自动保存的配置） |
+| 证书颁发 | Let's Encrypt（ACME v2，自动申请与续期） |
+| 管理 API | `http://127.0.0.1:2019`（仅本机监听，勿暴露到公网） |
+| 域名 | `20070809.xyz` |
+
+## 2. 本机部署实例
+
+当前 `/etc/caddy/Caddyfile`：
+
+```caddyfile
+20070809.xyz {
+	encode gzip
+
+	redir /tiktok /tiktok/ 308
+	redir /douyin /douyin/ 308
+	handle_path /tiktok/* {
+		reverse_proxy 127.0.0.1:8766
+	}
+	handle_path /douyin/* {
+		reverse_proxy 127.0.0.1:8001
+	}
+}
+```
+
+结构说明：
+
+- 站点地址直接写域名，Caddy 自动为 `20070809.xyz` 申请和续期 HTTPS 证书。
+- `encode gzip` 对响应做压缩。
+- `redir` 把不带尾部斜杠的目录访问 `308` 永久重定向到带斜杠版本，避免路径匹配问题。
+- `handle_path /tiktok/*` 匹配 `/tiktok/...` 请求转发到本机 `8766` 端口的 WebUI；`handle_path` 会先去掉 `/tiktok` 前缀再转发，所以后端无需感知该前缀。
+- `/douyin/*` 同理转发到本机 `8001` 端口。
+
+修改配置后的操作顺序（本机实际操作）：
+
+```bash
+sudo caddy fmt --overwrite /etc/caddy/Caddyfile   # 格式化配置
+sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile  # 校验
+sudo systemctl reload caddy                       # 热重载，不中断服务
+```
+
+验证：
+
+```bash
+systemctl status caddy --no-pager                 # 服务运行状态
+sudo ss -lntup | grep -E ':(80|443)\b'            # 80/443 监听情况
+curl -k -o /dev/null -w '%{http_code}\n' https://20070809.xyz/tiktok/   # 检查反向代理可达
+curl -k -o /dev/null -w '%{http_code}\n' https://20070809.xyz/douyin/
+```
+
+证书存放位置：
+
+```bash
+sudo find /var/lib/caddy/.local/share/caddy/certificates -name '*.crt'
+```
+
+## 3. 适用场景
 
 - 为本机的 Web 应用提供域名、HTTPS 和反向代理。
 - 托管静态网站或单页应用（SPA）。
@@ -14,7 +76,7 @@
 
 Caddy 的原生配置是 JSON；日常使用通常编写更易读的 `Caddyfile`，由配置适配器转换为 JSON。只要域名解析到服务器、80/443 端口可从公网访问，且未显式关闭 HTTPS，Caddy 通常会自动申请、安装和续期证书，并把 HTTP 重定向到 HTTPS。
 
-## 2. 安装
+## 4. 安装
 
 ### Debian / Ubuntu / Raspberry Pi OS
 
@@ -68,7 +130,7 @@ volumes:
 
 `/data` 中保存证书和私钥，生产环境必须持久化。官方发行包只包含标准模块；需要 DNS provider 等第三方模块时，可从下载页选择模块，或使用 `xcaddy` 构建自定义二进制。
 
-## 3. Caddyfile 快速开始
+## 5. Caddyfile 快速开始
 
 Linux 官方包默认读取 `/etc/caddy/Caddyfile`。
 
@@ -146,7 +208,7 @@ example.com {
 
 不要在生产环境使用 `tls_insecure_skip_verify`。上游使用私有 CA 时，应通过 `tls_trust_pool` 信任该 CA；上游证书名称与连接地址不一致时，再配置 `tls_server_name`。
 
-## 4. HTTPS 配置
+## 6. HTTPS 配置
 
 ### 公网域名
 
@@ -190,7 +252,7 @@ http://localhost:8080 {
 }
 ```
 
-## 5. 检查、格式化与加载配置
+## 7. 检查、格式化与加载配置
 
 修改配置后，先格式化和验证，再无中断重载：
 
@@ -212,7 +274,7 @@ caddy reload --config ./Caddyfile --adapter caddyfile
 
 `caddy run` 在前台运行，适合容器和调试；`caddy start` 会放到后台，但生产 Linux 环境更推荐 systemd。配置变更应使用 `reload`，不要通过停止再启动制造服务中断。
 
-## 6. systemd 服务与日志
+## 8. systemd 服务与日志
 
 ```bash
 systemctl status caddy
@@ -242,7 +304,7 @@ example.com {
 
 确保 `caddy` 用户可以创建或写入日志目录。若只需集中查看服务日志，直接使用默认的 journald 更省事。
 
-## 7. 常见问题排查
+## 9. 常见问题排查
 
 ### 证书申请失败
 
@@ -277,7 +339,7 @@ sudo -u caddy test -r /srv/example/index.html && echo readable
 
 Caddyfile 会按内置指令顺序排序，而不是永远逐行执行。复杂路由使用互斥的 `handle` 块；必须严格保持书写顺序时使用 `route`。可通过 `caddy adapt --pretty` 查看最终 JSON 配置。
 
-## 8. 安全与运维建议
+## 10. 安全与运维建议
 
 - 不要把 Caddy 管理 API（默认 `localhost:2019`）暴露到公网。
 - 证书私钥位于 Caddy 数据目录；限制权限、持久化存储并纳入备份策略。
@@ -285,7 +347,7 @@ Caddyfile 会按内置指令顺序排序，而不是永远逐行执行。复杂�
 - 升级前运行 `caddy validate`；需要第三方模块时，确认新二进制仍包含所需模块。
 - 容器中将配置文件设为只读，但 `/data` 和 `/config` 保持可写。
 
-## 9. 官方资料
+## 11. 官方资料
 
 - [安装](https://caddyserver.com/docs/install)
 - [Caddyfile 教程](https://caddyserver.com/docs/caddyfile-tutorial)
