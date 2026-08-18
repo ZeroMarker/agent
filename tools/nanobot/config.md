@@ -102,7 +102,7 @@ nanobot 支持用 **账号登录（OAuth）** 代替 API Key，直接复用本�
 
 | 提供者 key | 账号 | 自动读取的会话 | 默认模型 | 调用通道 |
 | --- | --- | --- | --- | --- |
-| `openai_codex` | ChatGPT 账号 | `~/.codex/auth.json` | `openai-codex/gpt-5.6-sol` | `chatgpt.com/backend-api/codex/responses` |
+| `openai_codex` | ChatGPT 账号 | `~/.codex/auth.json` | `openai-codex/gpt-5.6-sol`（已验证 `gpt-5.6-luna` 也可用） | `chatgpt.com/backend-api/codex/responses` |
 | `xai_grok` | xAI 账号 | `~/.grok/auth.json` | 见 status | Grok 专线 |
 | `github_copilot` | GitHub 账号 | `~/.copilot` 会话 | 见 status | Copilot 通道 |
 
@@ -141,7 +141,7 @@ nanobot 支持用 **账号登录（OAuth）** 代替 API Key，直接复用本�
 
 改完执行 `sudo systemctl restart nanobot`。
 
-> **本机现状（2026-08-18）**：默认走 `codex-oauth`（ChatGPT 账号，`gpt-5.6-sol`），已验证可正常对话。备用方案：`codex-luna` 预设（`providers.openai` API 密钥，模型 `gpt-5.6-luna`）与 `opencodeGo`（DeepSeek V4）。
+> **本机现状（2026-08-18）**：默认走 `codex-oauth-luna` 预设（ChatGPT 账号 OAuth，`openai-codex/gpt-5.6-luna`），已验证可正常对话。备用方案：`codex-luna` 预设（`providers.openai` API 密钥，模型 `gpt-5.6-luna`，需 API 余额）与 `opencodeGo`（DeepSeek V4）。
 > **注意**：OAuth 会话会过期，过期后需重新在对应 CLI（`codex` / `grok`）或 `nanobot provider login <provider>` 登录。
 
 ## 频道配置

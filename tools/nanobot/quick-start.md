@@ -23,8 +23,8 @@ export PATH=$PATH:~/.local/bin
 | 配置 | `~/.nanobot/config.json` |
 | 工作空间 | `~/.nanobot/workspace`（Git 存储，含 SOUL.md/AGENTS.md/USER.md/HEARTBEAT.md） |
 | 模型提供者 | `openai_codex`（ChatGPT 账号 OAuth，自动读取 `~/.codex/auth.json`，无需 API Key） |
-| 模型 | `openai-codex/gpt-5.6-sol`（预设 `codex-oauth`，`reasoningEffort: high`） |
-| 备用方案 | `codex-luna` 预设（OpenAI API，`gpt-5.6-luna`，需余额）；`opencodeGo`（DeepSeek V4，复用 pi 密钥） |
+| 模型 | `openai-codex/gpt-5.6-luna`（预设 `codex-oauth-luna`，`reasoningEffort: high`） |
+| 备用方案 | `codex-oauth` 预设（`gpt-5.6-sol`）；`codex-luna` 预设（OpenAI API，需余额）；`opencodeGo`（DeepSeek V4，复用 pi 密钥） |
 | 网关 | systemd 服务 `nanobot.service`，`http://127.0.0.1:18791`（health：`/health`） |
 | WebSocket 频道 | `ws://127.0.0.1:8765/` |
 
