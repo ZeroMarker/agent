@@ -34,7 +34,7 @@
 
 - [Codex CLI](tools/codex/)：OpenAI 轻量级编码代理，终端本地运行。
 - [MiMo Code](tools/mimocode/)：面向开发者的 AI 编码代理文档。
-- [Nanobot](tools/nanobot/)：超轻量级个人 AI 助手，支持 QQ/Telegram/Discord/WeChat/Slack 多频道。
+- [Nanobot](tools/nanobot/)：超轻量级个人 AI 助手，支持 QQ/Telegram/Discord/WeChat/Slack 多频道；本机已部署 v0.3.0（QQ 机器人已接入，ChatGPT 账号 OAuth Codex，systemd 网关 `:18791`）。
 - [ZeroClaw](tools/zeroclaw/)：基于 Rust 的快速 AI 助手，多频道、多模型、自主运行。
 - [WeClaw](tools/weclaw/)：使用说明文档。
 - [Agent Mail](tools/agent-mail/)：腾讯 Agent Mail —— 专为 AI Agent 设计的邮箱服务 CLI。

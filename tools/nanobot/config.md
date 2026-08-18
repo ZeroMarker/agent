@@ -49,7 +49,7 @@
 
 ## 模型提供者
 
-支持 30+ 提供者，每个提供者配置 `apiKey` 和可选的 `apiBase`。
+支持 30+ 提供者（v0.3.0 每个提供者统一为 `apiKey` / `apiBase` / `apiType` / `extraHeaders` 等字段）。
 
 ```json
 {
@@ -66,12 +66,15 @@
     "openrouter": {
       "apiKey": "sk-or-xxxxxxxxxxxxxxxxxxxxxxxx"
     },
-    "moonshot": {
-      "apiKey": "sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+    "opencodeGo": {
+      "apiKey": "<opencode-go key>",
+      "apiBase": "https://opencode.ai/zen/go/v1"
     }
   }
 }
 ```
+
+> 本机实际使用 `opencodeGo` 提供者 + `deepseek-v4-flash` 模型，密钥直接复用 pi 的 `~/.pi/agent/auth.json`（`opencode-go` 字段），无需额外注册 API。`apiType` 仅 `auto` / `chat_completions` / `responses` 三选一；其中 `api_type` 字段只有 `providers.openai` 允许显式设置，其余提供者保持 `auto` 即可。
 
 ### 支持的提供者
 
@@ -92,6 +95,54 @@
 | `ollama` | 本地 Ollama |
 | `vllm` | vLLM |
 | 更多... | 见 config.json |
+
+### OAuth 账号授权（免 API Key）
+
+nanobot 支持用 **账号登录（OAuth）** 代替 API Key，直接复用本机其他 CLI 的登录会话：
+
+| 提供者 key | 账号 | 自动读取的会话 | 默认模型 | 调用通道 |
+| --- | --- | --- | --- | --- |
+| `openai_codex` | ChatGPT 账号 | `~/.codex/auth.json` | `openai-codex/gpt-5.6-sol` | `chatgpt.com/backend-api/codex/responses` |
+| `xai_grok` | xAI 账号 | `~/.grok/auth.json` | 见 status | Grok 专线 |
+| `github_copilot` | GitHub 账号 | `~/.copilot` 会话 | 见 status | Copilot 通道 |
+
+`nanobot status` 会以 `✓ (OAuth)` 标记已检测到的会话。无需配置 `apiKey`，`providers.openai_codex` 等留空即可：
+
+```json
+{
+  "providers": {
+    "openai_codex": {
+      "apiKey": null,
+      "apiBase": null,
+      "apiType": "auto"
+    }
+  }
+}
+```
+
+切换到 OAuth 模型（采用预设方式）:
+
+```json
+{
+  "modelPresets": {
+    "codex-oauth": {
+      "model": "openai-codex/gpt-5.6-sol",
+      "provider": "openai_codex",
+      "reasoningEffort": "high"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "modelPreset": "codex-oauth"
+    }
+  }
+}
+```
+
+改完执行 `sudo systemctl restart nanobot`。
+
+> **本机现状（2026-08-18）**：默认走 `codex-oauth`（ChatGPT 账号，`gpt-5.6-sol`），已验证可正常对话。备用方案：`codex-luna` 预设（`providers.openai` API 密钥，模型 `gpt-5.6-luna`）与 `opencodeGo`（DeepSeek V4）。
+> **注意**：OAuth 会话会过期，过期后需重新在对应 CLI（`codex` / `grok`）或 `nanobot provider login <provider>` 登录。
 
 ## 频道配置
 

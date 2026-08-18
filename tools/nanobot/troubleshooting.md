@@ -126,6 +126,14 @@ Error: Request timed out
 }
 ```
 
+### CLI 退出时打印 async generator 警告
+
+```
+RuntimeError: generator didn't stop after athrow()
+```
+
+出现在 `nanobot agent` 调用带 reasoning 的模型（如 deepseek-v4-flash）之后。**无需处理**：消息已正常返回、退出码为 0，这是 v0.3.0 + httpcore2 客户端在关闭流时的无害告警。可加 `--no-markdown` 减少输出差异，或忽略之。
+
 ## 频道问题
 
 ### QQ 机器人不回复

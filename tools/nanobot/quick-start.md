@@ -6,11 +6,27 @@
 curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh | sh
 ```
 
-安装完成后需要将 `~/.local/bin` 加入 PATH：
+脚本会通过 `uv tool` 安装 `nanobot-ai`（PyPI 包），可执行文件位于 `~/.local/bin/nanobot`。安装完成后需要将 `~/.local/bin` 加入 PATH：
 
 ```bash
 export PATH=$PATH:~/.local/bin
 ```
+
+本机（2026-08-18，aarch64）安装结果：`🐈 nanobot v0.3.0`（PyPI 包 `nanobot-ai`）。
+
+## 当前环境（本机部署）
+
+| 项目 | 值 |
+| --- | --- |
+| 版本 | v0.3.0（PyPI 包 `nanobot-ai`，uv tool 安装） |
+| 可执行文件 | `~/.local/bin/nanobot` |
+| 配置 | `~/.nanobot/config.json` |
+| 工作空间 | `~/.nanobot/workspace`（Git 存储，含 SOUL.md/AGENTS.md/USER.md/HEARTBEAT.md） |
+| 模型提供者 | `openai_codex`（ChatGPT 账号 OAuth，自动读取 `~/.codex/auth.json`，无需 API Key） |
+| 模型 | `openai-codex/gpt-5.6-sol`（预设 `codex-oauth`，`reasoningEffort: high`） |
+| 备用方案 | `codex-luna` 预设（OpenAI API，`gpt-5.6-luna`，需余额）；`opencodeGo`（DeepSeek V4，复用 pi 密钥） |
+| 网关 | systemd 服务 `nanobot.service`，`http://127.0.0.1:18791`（health：`/health`） |
+| WebSocket 频道 | `ws://127.0.0.1:8765/` |
 
 ## 初始化
 
@@ -20,10 +36,12 @@ nanobot onboard
 
 这会创建：
 - `~/.nanobot/config.json` — 主配置文件
-- `~/.nanobot/SOUL.md` — AI 人格设定
-- `~/.nanobot/AGENTS.md` — Agent 配置
-- `~/.nanobot/memory/` — 记忆目录
-- `~/.nanobot/workspace/` — 工作空间
+- `~/.nanobot/workspace/` — 工作空间（v0.3.0 起为 Git 存储）
+  - `SOUL.md` — AI 人格设定
+  - `AGENTS.md` — Agent 配置
+  - `USER.md` — 用户信息
+  - `HEARTBEAT.md` — 定时任务
+  - `memory/` `prompts/` `skills/` — 记忆、提示词与技能目录
 
 ## 配置
 
@@ -79,47 +97,49 @@ nanobot onboard
 ### 启动网关（包含所有频道）
 
 ```bash
-nanobot gateway -c ~/.nanobot/config.json
+nanobot gateway --foreground -c ~/.nanobot/config.json
 ```
 
-### 启动 API 服务器（OpenAI 兼容）
+后台管理：
 
 ```bash
-nanobot serve -c ~/.nanobot/config.json
+nanobot gateway status    # 查看后台网关状态
+nanobot gateway logs      # 查看后台网关日志
+nanobot gateway stop      # 停止
+nanobot gateway restart   # 重启
+nanobot gateway install-service   # 安装 systemd 用户服务
 ```
 
 ### 生产环境：systemd 托管（推荐）
 
-2026-08-03 起，生产环境使用 systemd 服务托管网关，支持内存限制与崩溃自动重启：
+本机以系统级 systemd 服务托管网关，支持内存限制与崩溃自动重启：
 
 ```bash
-systemctl start nanobot         # 启动
-systemctl enable nanobot        # 开机自启
-systemctl status nanobot        # 查看状态
-journalctl -u nanobot -f        # 实时日志
+sudo systemctl start nanobot         # 启动
+sudo systemctl enable nanobot        # 开机自启
+sudo systemctl status nanobot        # 查看状态
+journalctl -u nanobot -f             # 实时日志
 ```
 
 Health check：`curl http://127.0.0.1:18791/health`
 
-服务配置见 `/etc/systemd/system/nanobot.service`，含 `MemoryHigh=800M / MemoryMax=1G / OOMScoreAdjust=-500` 与 `Restart=always`。更多说明见 [optimization-strategy.md](optimization-strategy.md)。
+本机服务配置见 `/etc/systemd/system/nanobot.service`，以 `ubuntu` 用户运行 `nanobot gateway --foreground`，含 `MemoryHigh=2G / MemoryMax=3G` 与 `Restart=always`。低内存机器（1.6GB）调优方案见 [optimization-strategy.md](optimization-strategy.md)。
 
 ### 直接对话测试
 
 ```bash
-nanobot agent -m "你好" -c ~/.nanobot/config.json
+nanobot agent -m "你好" --no-markdown -c ~/.nanobot/config.json
 ```
+
+> 注：v0.3.0 中若模型返回 reasoning 流，CLI 退出时可能打印 httpcore 的 `generator didn't stop after athrow()` 无害告警，不影响输出与退出码。
 
 ## 验证
 
 ```bash
-# 测试 agent
-nanobot agent -m "你好" -c ~/.nanobot/config.json
-
-# 查看状态
-nanobot status
-
-# 查看频道状态
-nanobot channels status
+nanobot status                                # 状态（含各 provider 配置情况）
+nanobot agent -m "你好" --no-markdown          # 直接对话测试
+nanobot channels status                        # 查看频道状态
+curl http://127.0.0.1:18791/health             # 网关健康检查
 ```
 
 ## 下一步
