@@ -1,6 +1,6 @@
 # rclone
 
-[rclone](https://rclone.org/) 是用于访问和管理云存储的命令行工具，支持复制、同步、挂载和文件列表等操作。本机已配置一个 PikPak 远程，并挂载到 `~/pik`。
+[rclone](https://rclone.org/) 是用于访问和管理云存储的命令行工具，支持复制、同步、挂载和文件列表等操作。本机已配置一个 PikPak 远程，并由 systemd 服务挂载到 `~/pik`。
 
 ## 当前环境
 
@@ -10,7 +10,13 @@
 | 远程名称 | `pik` |
 | 配置文件 | `~/.config/rclone/rclone.conf` |
 | 本地挂载点 | `~/pik` |
-| 日志文件 | `~/.cache/rclone-pik.log` |
+| 挂载方式 | systemd 服务 `rclone-pikpak.service`（已启用，开机自启） |
+| 服务单元（运行时） | `/etc/systemd/system/rclone-pikpak.service`（**自包含，参数全部内联，单一事实来源**） |
+| 服务单元（项目落盘） | `~/agent/rclone/systemd/rclone-pikpak.service`（与 /etc 同步，改完记得回拷） |
+| 手动备用脚本 | `~/agent/rclone/mount.sh`（参数自动读取服务单元，零漂移） |
+| 专项说明 | `~/agent/rclone/README.md`（目录结构、新机安装/恢复、调参流程） |
+| 日志文件 | `~/rclone_pikpak.log` |
+| 依赖配置 | `/etc/fuse.conf` 已开启 `user_allow_other`（供 `--allow-other`） |
 
 > 配置文件包含认证信息，不要提交到 Git、发送给他人或直接粘贴到日志中。
 
@@ -26,65 +32,129 @@ rclone lsd pik:
 
 # 查看指定目录下的文件
 rclone ls pik:"My Upload"
-```
 
-## 挂载 PikPak
-
-### 前台运行
-
-适合调试，按 `Ctrl-C` 停止：
-
-```bash
-mkdir -p ~/pik
-rclone mount pik: ~/pik \
-  --vfs-cache-mode full \
-  --dir-cache-time 10m \
-  --poll-interval 1m \
-  --log-level INFO
-```
-
-### 后台运行（当前使用方式）
-
-```bash
-mkdir -p ~/pik
-nohup rclone mount pik: ~/pik \
-  --vfs-cache-mode full \
-  --dir-cache-time 10m \
-  --poll-interval 1m \
-  --log-file ~/.cache/rclone-pik.log \
-  --log-level INFO \
-  >/dev/null 2>&1 &
-```
-
-检查挂载状态：
-
-```bash
-mountpoint ~/pik
-findmnt -T ~/pik
+# 检查挂载是否在线
+systemctl status rclone-pikpak
+findmnt ~/pik
 ls ~/pik
 ```
 
-## 挂载参数说明
+## 挂载 PikPak（systemd 服务，推荐）
 
-- `pik:`：rclone 配置中的远程名称。
-- `~/pik`：本地 FUSE 挂载目录，目录必须存在。
-- `--vfs-cache-mode full`：启用完整 VFS 缓存，改善写入、随机读写和部分应用兼容性；会占用本地磁盘空间。
-- `--dir-cache-time 10m`：目录列表缓存 10 分钟，减少请求；远端新增文件可能不会立即显示。
-- `--poll-interval 1m`：定期检查远端变化。后端不支持时不会替代目录缓存刷新。
-- `--log-file ~/.cache/rclone-pik.log`：把日志保存到文件。
-- `--log-level INFO`：记录常规信息；排障时可改为 `DEBUG` 或 `-vv`。
-- `nohup ... &`：让挂载在后台运行，并在终端退出后继续运行。
+> 专项文件（服务单元落盘、安装/恢复步骤、改参流程）见 `~/agent/rclone/README.md`；
+> 下文为日常操作与单元内容说明。
+
+```bash
+# 查看状态
+systemctl status rclone-pikpak
+
+# 重启（修改参数后生效）
+systemctl restart rclone-pikpak
+
+# 停止 / 启动 / 禁用自启
+systemctl stop rclone-pikpak
+systemctl start rclone-pikpak
+systemctl disable rclone-pikpak
+```
+
+### 服务单元内容（参数内联，单一事实来源）
+
+```ini
+[Unit]
+Description=Rclone PikPak Mount
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=HOME=/home/ubuntu
+# 启动前：确保挂载点存在；清理可能残留的死挂载（失败不影响启动）
+ExecStartPre=/usr/bin/bash -c "mkdir -p /home/ubuntu/pik && (fusermount3 -u /home/ubuntu/pik || true)"
+# 所有挂载参数集中在此，修改后 daemon-reload && restart 生效
+ExecStart=/usr/bin/rclone mount pik: /home/ubuntu/pik \
+    --vfs-cache-mode full \
+    --vfs-cache-max-size 10G \
+    --vfs-cache-max-age 2h \
+    --vfs-read-chunk-size 32M \
+    --vfs-read-chunk-size-limit 1G \
+    --vfs-read-ahead 256M \
+    --buffer-size 128M \
+    --dir-cache-time 5m \
+    --poll-interval 30s \
+    --attr-timeout 1s \
+    --allow-other \
+    --umask 000 \
+    --log-file /home/ubuntu/rclone_pikpak.log \
+    --log-level INFO
+Restart=on-failure
+RestartSec=10
+OOMScoreAdjust=-500
+
+[Install]
+WantedBy=multi-user.target
+```
+
+要点：
+
+- **参数只在此处维护**：修改挂载参数只需编辑这个文件，然后 `sudo systemctl daemon-reload && sudo systemctl restart rclone-pikpak`。
+- `ExecStartPre` 每次启动前清理可能的死挂载（`fusermount3 -u` 失败忽略，不影响启动）。
+- `Restart=on-failure`：rclone 异常退出后 10 秒自动拉起。
+- `OOMScoreAdjust=-500`：1.6G 内存小机器上防 OOM killer 优先杀掉 rclone。
+- 主进程直接是 rclone（无中间脚本），日志/存活检测均由 systemd 直接管理。
+
+### 手动后台挂载（临时备用，systemd 异常时使用）
+
+```bash
+bash ~/agent/rclone/mount.sh
+```
+
+脚本会**自动解析服务单元中的参数**（保证与系统服务完全一致），追加 `--daemon` 转后台后立即返回。
+
+### 修改挂载参数（如调整缓存、目录刷新时间）
+
+```bash
+sudo nano /etc/systemd/system/rclone-pikpak.service   # 编辑 ExecStart 参数
+sudo systemctl daemon-reload                          # 重载单元定义
+sudo systemctl restart rclone-pikpak                  # 应用生效
+```
+
+## 挂载参数说明（对应服务单元 ExecStart）
+
+| 参数 | 值 | 说明 |
+| --- | --- | --- |
+| `--vfs-cache-mode` | `full` | 全缓存模式：本地缓存完整文件，读性能最佳 |
+| `--vfs-cache-max-size` | `10G` | 缓存目录最大占用 10GB，防止磁盘爆满 |
+| `--vfs-cache-max-age` | `2h` | 缓存文件最长保留 2 小时，自动清理旧块 |
+| `--vfs-read-chunk-size` | `32M` | 每次请求块大小，平衡首帧延迟 |
+| `--vfs-read-chunk-size-limit` | `1G` | 单次顺序预读上限，防止拖动进度条时无限下载 |
+| `--vfs-read-ahead` | `256M` | 预读缓冲区，提升连续播放流畅度 |
+| `--buffer-size` | `128M` | 内存传输缓冲区，加速大文件拷贝 |
+| `--dir-cache-time` | `5m` | 目录列表缓存 5 分钟，自动过期后重新拉取 |
+| `--poll-interval` | `30s` | 每 30 秒轮询远端变更（PikPak WebDAV 不支持轮询，已自动忽略） |
+| `--attr-timeout` | `1s` | 文件属性缓存仅 1 秒，`ls` 立即看到最新信息 |
+| `--allow-other` | — | 允许其他用户（SMB/Docker）访问挂载点，需 `/etc/fuse.conf` 开 `user_allow_other` |
+| `--umask` | `000` | 挂载目录权限 777，读写无限制 |
+| `--log-file` / `--log-level` | `~/rclone_pikpak.log` / `INFO` | 日志文件与等级；排障可改 `DEBUG` |
+
+> 参数实际生效位置在服务单元 `ExecStart` 内（见上），表中内容为其说明。手动脚本 `mount.sh` 不重复维护参数，启动时自动读取单元。
+
+> 注意：PikPak WebDAV 后端不支持 `--poll-interval` 轮询，日志会提示
+> `poll-interval is not supported by this remote`，目录自动刷新主要靠
+> `--dir-cache-time 5m` 过期重拉实现。
 
 ## 卸载与重启
 
 ```bash
-# 卸载
+# 常规重启（推荐，会自动先清理死挂载再挂载）
+sudo systemctl restart rclone-pikpak
+
+# 仅卸载（不停止服务，不推荐直接这样操作）
+sudo systemctl stop rclone-pikpak
 fusermount3 -u ~/pik
 
 # 确认是否仍有挂载
-mountpoint ~/pik
-
-# 重新挂载：先卸载，再执行后台挂载命令
+findmnt ~/pik
 ```
 
 如果目录忙，可先关闭正在访问 `~/pik` 的程序，再重试卸载。必要时查看进程：
@@ -123,10 +193,14 @@ rclone sync ./local-dir pik:"My Upload" --dry-run -P
 
 ```bash
 # 查看最近日志
-tail -50 ~/.cache/rclone-pik.log
+tail -50 ~/rclone_pikpak.log
 
 # 持续查看日志
-tail -f ~/.cache/rclone-pik.log
+tail -f ~/rclone_pikpak.log
+
+# 或查看 systemd 服务日志（含服务生命周期事件）
+journalctl -u rclone-pikpak -n 50
+journalctl -u rclone-pikpak -f
 
 # 临时使用详细日志测试
 rclone lsd pik: -vv
@@ -135,10 +209,12 @@ rclone lsd pik: -vv
 常见问题：
 
 1. **认证失败**：运行 `rclone config` 检查或重新配置 `pik`，不要把密码/token 写入脚本。
-2. **目录内容未及时更新**：等待 `--dir-cache-time` 到期，或重启挂载；可按需缩短缓存时间。
-3. **写入失败或文件打开异常**：确认使用了 `--vfs-cache-mode full`，并检查本地磁盘空间。
-4. **挂载目录不存在**：先执行 `mkdir -p ~/pik`。
-5. **网络不稳定**：查看日志，适当增加超时和重试参数；避免在网络异常时使用高风险的 `sync` 或 `delete`。
+2. **目录内容未及时更新**：等待 `--dir-cache-time `（5 分钟）到期，或重启挂载；可按需缩短缓存时间。
+3. **写入失败或文件打开异常**：确认使用了 `--vfs-cache-mode full`，并检查本地磁盘空间（缓存上限 10G）。
+4. **挂载目录不存在**：脚本会自动 `mkdir -p ~/pik`；手动挂载时需先创建。
+5. **`allow_other` 挂载报错**：`fusermount: option allow_other only allowed if 'user_allow_other' is set in /etc/fuse.conf` → 取消 `/etc/fuse.conf` 中 `user_allow_other` 一行的注释。
+6. **服务起不来，日志显示 FUSE 错误**：先 `sudo systemctl restart` 让 `ExecStartPre` 清掉死挂载；仍失败再查 `journalctl -u rclone-pikpak -n 50`。
+7. **网络不稳定**：查看日志，适当增加超时和重试参数；避免在网络异常时使用高风险的 `sync` 或 `delete`。
 
 ## 配置与安全
 

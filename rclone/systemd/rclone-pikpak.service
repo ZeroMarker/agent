@@ -1,0 +1,33 @@
+[Unit]
+Description=Rclone PikPak Mount
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=HOME=/home/ubuntu
+# 启动前：确保挂载点存在；清理可能残留的死挂载（失败不影响启动）
+ExecStartPre=/usr/bin/bash -c "mkdir -p /home/ubuntu/pik && (fusermount3 -u /home/ubuntu/pik || true)"
+# 所有挂载参数集中在此（单一事实来源），修改后 systemctl daemon-reload && restart 生效
+ExecStart=/usr/bin/rclone mount pik: /home/ubuntu/pik \
+    --vfs-cache-mode full \
+    --vfs-cache-max-size 10G \
+    --vfs-cache-max-age 2h \
+    --vfs-read-chunk-size 32M \
+    --vfs-read-chunk-size-limit 1G \
+    --vfs-read-ahead 256M \
+    --buffer-size 128M \
+    --dir-cache-time 5m \
+    --poll-interval 30s \
+    --attr-timeout 1s \
+    --allow-other \
+    --umask 000 \
+    --log-file /home/ubuntu/rclone_pikpak.log \
+    --log-level INFO
+Restart=on-failure
+RestartSec=10
+OOMScoreAdjust=-500
+
+[Install]
+WantedBy=multi-user.target
