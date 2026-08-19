@@ -48,7 +48,7 @@
 - [浏览器自动化](browser/index.md)：浏览器控制、网页任务执行和测试相关工具。
 - [手机 Agent](phone/index.md)：移动端自动化与手机操作 Agent 项目。
 - [软件工具](software/blender.md)：具体软件的 Agent 化、自动化或创作流程笔记。
-- [rclone](software/rclone.md)：云存储命令行管理、PikPak 挂载与常用操作。
+- [rclone](rclone/README.md)：云存储命令行管理、PikPak 挂载（systemd 服务）与常用操作。
 - [工作流编排](workflow/index.md)：低代码、自动化编排和 Agent workflow 平台。
 
 ## 整理规范
