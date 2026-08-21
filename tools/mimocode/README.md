@@ -4,6 +4,8 @@
 
 在线文档: https://mimo.xiaomi.com/zh/mimocode/start
 
+> 📁 本地 `docs/` 为上游文档快照（vendored），整理时以线上文档为准；上游更新后如需同步，直接替换对应文件。
+
 ## 目录
 
 ### 入门

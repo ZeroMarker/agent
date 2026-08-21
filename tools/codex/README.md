@@ -7,6 +7,8 @@
 - 最新版本: https://github.com/openai/codex/releases/latest
 - 94k Stars | 13.9k Forks | Apache-2.0 License
 
+> 📁 本地 `docs/` 为上游仓库文档快照（vendored），整理时以线上文档为准；上游更新后如需同步，直接替换对应文件。
+
 ## Codex 产品矩阵
 
 | 产品 | 说明 |

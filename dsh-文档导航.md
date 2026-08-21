@@ -1,7 +1,7 @@
 # DeepSeek Harness 文档导航（整理版）
 
 > 基于 `deepseek-ai/deepseek-harness` @ `dsh-0.1.0-rc.8`（开发者预览版）整理
-> 仓库路径：`/home/ubuntu/agent/deepseek-harness`
+> 仓库：<https://github.com/deepseek-ai/deepseek-harness>（本文是基于该仓库 docs/ 的导航整理，本地未保留源码克隆，以线上仓库为准）
 
 ---
 
