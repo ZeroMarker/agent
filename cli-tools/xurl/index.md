@@ -3,6 +3,8 @@
 > **xurl** — X (Twitter) API 官方 CLI 工具，curl 风格命令行接口，支持 OAuth 1.0a / OAuth 2.0 (PKCE) / App-only 三种认证方式。
 >
 > 源码：<https://github.com/xdevplatform/xurl> · 语言：Go · 许可证：MIT
+>
+> **与 [twitter-cli](../twitter-cli/index.md) 怎么选**：xurl 走官方 API，稳定合规，但需要 X 开发者账户且受配额限制；twitter-cli 免 API Key 直接读时间线/书签，走网页端逆向接口（有封号风险）。有开发者账户或生产集成选 xurl；无 API 凭据的个人使用选 twitter-cli。
 
 ---
 

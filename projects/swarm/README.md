@@ -39,6 +39,6 @@ pytest
 - Worker 通过同一个 `SwarmState` 交换研究、实现和审查结果。
 - Review 首行协议用于判断是否通过；生产环境可改成模型结构化输出。
 - 当前示例只生成实现文本，不执行生成的代码。若加入 shell、文件写入或网络工具，应增加沙箱、超时、审批和审计。
-- `.env.example` 默认使用 `deepseek-v4-flash`。旧的 `deepseek-chat` / `deepseek-reasoner` 名称将于 2026-07-24 停用。
+- `.env.example` 默认使用 `deepseek-v4-flash`。旧的 `deepseek-chat` / `deepseek-reasoner` 名称已于 2026-07-24 停用。
 
 原始架构笔记保留在 [`swarm.md`](./swarm.md)。

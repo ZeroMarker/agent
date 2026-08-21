@@ -1,3 +1,5 @@
+> 注：本文为原始架构笔记，保留初稿思路。模型名已同步为现行命名（`deepseek-v4-flash` / `deepseek-v4-pro`）；实际实现以 [`README.md`](./README.md) 与 `src/` 为准。
+
 使用 **LangChain + DeepSeek 搭建 Agent 集群**，本质是让多个 Agent 使用 DeepSeek 作为推理模型，通过 LangGraph / LangChain 进行任务编排。
 
 一个比较实用的架构：
@@ -11,7 +13,7 @@
         ┌──────────────┼──────────────┐
         │              │              │
   Research Agent   Coding Agent   Review Agent
-  DeepSeek-V3      DeepSeek-Coder  DeepSeek-V3
+  DeepSeek-V4      DeepSeek-V4-Pro DeepSeek-V4
         │              │              │
         └──────────────┼──────────────┘
                        |
@@ -65,7 +67,7 @@ from langchain_openai import ChatOpenAI
 
 
 deepseek = ChatOpenAI(
-    model="deepseek-chat",
+    model="deepseek-v4-flash",
     api_key="YOUR_KEY",
     base_url="https://api.deepseek.com"
 )
@@ -75,7 +77,7 @@ deepseek = ChatOpenAI(
 
 ```python
 coder = ChatOpenAI(
-    model="deepseek-coder",
+    model="deepseek-v4-pro",
     api_key="YOUR_KEY",
     base_url="https://api.deepseek.com"
 )
@@ -228,7 +230,7 @@ print(result)
 
 ```python
 supervisor = ChatOpenAI(
-    model="deepseek-chat",
+    model="deepseek-v4-flash",
     temperature=0
 )
 

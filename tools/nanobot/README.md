@@ -49,5 +49,5 @@ nanobot gateway -c ~/.nanobot/config.json
 
 - 配置：`~/.nanobot/config.json`
 - 工作空间：`~/.nanobot/workspace`
-- 记忆：`~/.nanobot/memory/
+- 记忆：`~/.nanobot/memory/`
 - 日志：`~/.nanobot/nanobot.log`

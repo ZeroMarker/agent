@@ -2,6 +2,8 @@
 
 [`twitter-cli`](https://github.com/public-clis/twitter-cli) 是一个终端优先的 Twitter/X CLI 工具，无需 API Key 即可读取时间线、书签、用户主页，并支持发推、回复、引用转推等写操作。它内置反风控机制（TLS 指纹伪装、请求时序随机化、写操作随机延迟），适合人类用户和 AI Agent 使用。
 
+> **与 [xurl](../xurl/index.md) 怎么选**：twitter-cli 免 API Key、直接读时间线/书签，走网页端逆向接口（有封号风险，需配合代理与浏览器 Cookie）；xurl 是 X 官方 API CLI，稳定合规但需要开发者账户。个人日常浏览/轻量写入选 twitter-cli；生产集成、需要官方保证的场景选 xurl。
+
 ## 适合场景
 
 - 在终端里刷「为你推荐」或「关注」时间线，看推文详情与回复。
