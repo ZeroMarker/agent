@@ -104,7 +104,7 @@ twitter list 1539453138322673664 --cursor "<next-cursor>"
 # 用户
 twitter user elonmusk
 twitter user-posts elonmusk --max 20
-twitter likes elonmusk --max 30    # ⚠️ 2024 年 6 月起点赞已私密，仅能看自己的
+twitter likes <自己的用户名> --max 30   # ⚠️ SCREEN_NAME 必传（缺省会报 Missing argument）；2024-06 起点赞私密，只能查自己的
 twitter followers elonmusk --max 50
 twitter following elonmusk --max 50
 ```
@@ -203,7 +203,7 @@ macOS Keychain 报 `Unable to get key for cookie decryption` 时：SSH 会话先
 
 - 不支持视频/GIF 动画上传、私信、通知、投票。
 - 单一账号：同一时间只使用一套凭证。
-- 点赞已私密：`twitter likes` 只能查看自己的点赞。
+- 点赞已私密：`twitter likes` 只能查看自己的点赞，且 SCREEN_NAME 参数必传（实测不带参数报 `Missing argument 'SCREEN_NAME'`，不会默认查自己）。
 
 ## 作为 AI Agent Skill 使用
 
