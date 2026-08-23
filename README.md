@@ -39,6 +39,7 @@
 
 ## 工具使用指南（tools/）
 
+- [CLI-Anything](tools/cli-anything/)：HKUDS 出品的「让所有软件 Agent 原生」框架——为任意有源码的软件自动生成 CLI harness，配套 CLI-Hub 注册表。
 - [Codex CLI](tools/codex/)：OpenAI 轻量级编码代理，终端本地运行。
 - [MiMo Code](tools/mimocode/)：面向开发者的 AI 编码代理文档。
 - [Nanobot](tools/nanobot/)：超轻量级个人 AI 助手，支持 QQ/Telegram/Discord/WeChat/Slack 多频道；本机已部署 v0.3.0（QQ 机器人已接入，ChatGPT 账号 OAuth Codex，systemd 网关 `:18791`）。
