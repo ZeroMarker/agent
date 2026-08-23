@@ -31,6 +31,7 @@
 - [lark-cli](cli-tools/lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明。
 - [twitter-cli](cli-tools/twitter-cli/index.md)：Twitter/X 终端 CLI（无需 API Key）的安装、认证、常用命令和 Agent 使用说明。
 - [weibo-cli](cli-tools/weibo-cli/index.md)：微博开放平台官方 CLI（@weibo-ai/weibo-cli）的安装、设备码认证、微博/评论/搜索/用户命令和 Agent 使用说明。
+- [xiaohongshu-cli](cli-tools/xiaohongshu-cli/index.md)：小红书终端 CLI 的安装、三种认证方式（浏览器 Cookie/扫码）、搜索/阅读/互动/发布命令和 Agent 使用说明。
 - [xurl](cli-tools/xurl/index.md)：X (Twitter) API 官方 CLI 的安装、三种认证方式、请求/流式/媒体/聊天命令和 Agent 使用说明。
 - [zhihu-cli](cli-tools/zhihu-cli/index.md)：知乎开放平台官方 CLI 的安装、Access Secret 认证、搜索/热榜/直答/本人数据命令和 Agent 使用说明。
 
