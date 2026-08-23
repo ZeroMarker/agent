@@ -7,6 +7,7 @@
 | 名称 | 方向 | 备注 |
 | --- | --- | --- |
 | browser-use | 浏览器 Agent 框架 | 可用于让 Agent 操作浏览器完成网页任务。 |
+| Playwright | 跨浏览器自动化框架 | 微软出品，三引擎同 API；安装、速查、选型与排障见 [notes/playwright.md](../notes/playwright.md)。 |
 | mcp_web_search | Google 搜索绕过反爬 | 基于 Playwright + stealth，可作为 CLI 或 MCP 服务。 |
 
 ## mcp_web_search
@@ -69,6 +70,5 @@ python3 -m mcp_integration.server
 ## 待补充
 
 - browser-use 的安装方式和最小示例。
-- 与 Playwright、Selenium 的差异。
-- 支持的浏览器和运行模式。
-- 常见失败原因与调试方法。
+
+Playwright 的安装、API 速查、支持的浏览器与运行模式、选型对比（vs Selenium/Puppeteer）和常见排障见 [notes/playwright.md](../notes/playwright.md)。

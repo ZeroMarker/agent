@@ -20,6 +20,7 @@
 - [Codespace](notes/codespace.md)：GitHub Codespace 的查看、启动、连接、pi agent 授权与项目操作笔记。
 - [Tavily](notes/tavily.md)：AI Agent 的搜索/提取/爬取/研究 API 使用笔记。
 - [Jina](notes/jina.md)：Jina Reader/Search —— URL 转 Markdown 与联网搜索 API 笔记（含 Cloudflare 站绕过实战）。
+- [Playwright](notes/playwright.md)：跨浏览器自动化框架 —— 安装、核心概念、API 速查、测试运行器与 Agent 集成笔记（含 vs Selenium/Puppeteer 选型）。
 - [Caddy](notes/caddy.md)：自动 HTTPS、反向代理、静态站点、Docker 与常见排障笔记；含本机 `20070809.xyz` 部署实例（`/tiktok`、`/douyin` 反向代理）。
 - [Computer](notes/computer.md)：Cloudflare Computer 架构与使用笔记。
 - [DeepSeek Harness 文档导航](notes/dsh-文档导航.md)：deepseek-ai/deepseek-harness 仓库 docs/ 的结构化导航与阅读路径整理。
