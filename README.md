@@ -30,6 +30,7 @@
 - [bilibili-cli](cli-tools/bilibili-cli/index.md)：B 站终端 CLI 的安装、浏览/搜索/互动命令和 Agent 使用说明。
 - [lark-cli](cli-tools/lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明。
 - [OpenCLI](cli-tools/opencli/index.md)：把任意网站变成 CLI 并让 Agent 用已登录 Chrome 操作网页的统一工具——内置 100+ 站点 adapter、browser 原语、CLI Hub 与插件。
+- [rdt-cli](cli-tools/rdt-cli/index.md)：Reddit 终端 CLI 的安装、浏览器 Cookie 认证、浏览/搜索/互动命令和 Agent 使用说明。
 - [twitter-cli](cli-tools/twitter-cli/index.md)：Twitter/X 终端 CLI（无需 API Key）的安装、认证、常用命令和 Agent 使用说明。
 - [weibo-cli](cli-tools/weibo-cli/index.md)：微博开放平台官方 CLI（@weibo-ai/weibo-cli）的安装、设备码认证、微博/评论/搜索/用户命令和 Agent 使用说明。
 - [xiaohongshu-cli](cli-tools/xiaohongshu-cli/index.md)：小红书终端 CLI 的安装、三种认证方式（浏览器 Cookie/扫码）、搜索/阅读/互动/发布命令和 Agent 使用说明。
