@@ -13,7 +13,3 @@ __pycache__/
 
 # 环境变量文件
 .env
-
-# cc-switch-web 部署目录与本地产物
-cc-switch-web/
-.cc-switch/
