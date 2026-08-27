@@ -19,30 +19,28 @@
 
 ## 2. 本机部署实例
 
-当前 `/etc/caddy/Caddyfile`：
+当前 `/etc/caddy/Caddyfile`（`sudo caddy adapt` 可看展开后的完整站点清单）：
 
-```caddyfile
-20070809.xyz {
-	encode gzip
-
-	redir /tiktok /tiktok/ 308
-	redir /douyin /douyin/ 308
-	handle_path /tiktok/* {
-		reverse_proxy 127.0.0.1:8766
-	}
-	handle_path /douyin/* {
-		reverse_proxy 127.0.0.1:8001
-	}
-}
-```
+| 主机 | 上游 | basicauth |
+|---|---|---|
+| `20070809.xyz` | 127.0.0.1:8080（SysMon，默认） | 是 |
+| `tiktok.20070809.xyz` | 127.0.0.1:8766 | 是 |
+| `douyin.20070809.xyz` | 127.0.0.1:8001 | 是 |
+| `edit.20070809.xyz` | 127.0.0.1:8345 | 是 |
+| `netdata.20070809.xyz` | 127.0.0.1:19999 | 是 |
+| `212.20070809.xyz` | 127.0.0.1:8512 | 是 |
+| `dsh.20070809.xyz` | 127.0.0.1:3080 | 是 |
+| `ibkr.20070809.xyz` | 127.0.0.1:8081 | 否（免密） |
 
 结构说明：
 
-- 站点地址直接写域名，Caddy 自动为 `20070809.xyz` 申请和续期 HTTPS 证书。
-- `encode gzip` 对响应做压缩。
-- `redir` 把不带尾部斜杠的目录访问 `308` 永久重定向到带斜杠版本，避免路径匹配问题。
-- `handle_path /tiktok/*` 匹配 `/tiktok/...` 请求转发到本机 `8766` 端口的 WebUI；`handle_path` 会先去掉 `/tiktok` 前缀再转发，所以后端无需感知该前缀。
-- `/douyin/*` 同理转发到本机 `8001` 端口。
+- 每个应用一个独立子域名，在自己根路径运行，站点块里直接 `reverse_proxy`（不再用 `handle_path`/`redir`）。
+- 站名即 `20070809.xyz` 的子域，需在 Cloudflare 为每个子域加 A/AAAA 指向本机，否则 Caddy 无法签发证书。
+- `encode gzip` 压缩响应；`basicauth { admin <hash> }` 为每个子站点套同一套账号；`ibkr` 是唯一免密项（继承原 `/public` 豁免）。
+- 旧路径代理（`/tiktok` `/douyin` `/edit` `/netdata` `/212` `/public/ibkr`）已全部移除，改为子域名；旧路径访问已失效。
+- `dsh.20070809.xyz` 承载 dsh web：它是**绝对根路径 SPA**（`/assets` `/plugins` `/api`/WebSocket 都以 `/` 为基准），无法与 `20070809.xyz` 根路径（被 SysMon 占用 `/api`·`/manifest`）共存于同一主机，故用独立子域名。
+
+**dsh web 注意**：主 GUI 与 agent 的 `opencode_usage` 工具可从公网子域名访问；但 dsh 的设置/提供方目录（`/api/settings.describe`）与插件的用量面板/设置卡片都被**仅回环（loopback-only）**保护，走公网会返回 403。配置这些需在本机用 `http://127.0.0.1:3080` 打开。
 
 修改配置后的操作顺序（本机实际操作）：
 
@@ -57,8 +55,11 @@ sudo systemctl reload caddy                       # 热重载，不中断服务
 ```bash
 systemctl status caddy --no-pager                 # 服务运行状态
 sudo ss -lntup | grep -E ':(80|443)\b'            # 80/443 监听情况
-curl -k -o /dev/null -w '%{http_code}\n' https://20070809.xyz/tiktok/   # 检查反向代理可达
-curl -k -o /dev/null -w '%{http_code}\n' https://20070809.xyz/douyin/
+# 子域名未加 DNS 前，直接探测后端可通性：
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8766/   # tiktok 后端
+# DNS 生效后访问子域名（除 ibkr 外需 admin 密码）：
+curl -k -u admin:<密码> -o /dev/null -w '%{http_code}\n' https://tiktok.20070809.xyz/
+curl -k -o /dev/null -w '%{http_code}\n' https://ibkr.20070809.xyz/   # 免密
 ```
 
 证书存放位置：
