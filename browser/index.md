@@ -10,7 +10,7 @@
 | OpenCLI | 网站→CLI + 登录态浏览器自动化 | 内置 100+ 站点 adapter，Agent 可驱动已登录 Chrome，见 [cli-tools/opencli/](../cli-tools/opencli/index.md)。 |
 | Playwright | 跨浏览器自动化框架 | 微软出品，三引擎同 API；安装、速查、选型与排障见 [notes/playwright.md](../notes/playwright.md)。 |
 | mcp_web_search | Google 搜索绕过反爬 | 基于 Playwright + stealth，可作为 CLI 或 MCP 服务。 |
-| Chromium 桌面浏览器 | Chromium + Xvfb + noVNC | Docker Compose 一键启动，支持网页远程桌面和 CDP 自动化，见 [desktop-browser/](desktop-browser/README.md)。 |
+| Chromium 桌面浏览器 | Chromium + Xvfb + noVNC | 支持 Docker Compose 或 systemd 部署、网页远程桌面和 CDP 自动化，见 [desktop-browser/](desktop-browser/README.md)。 |
 
 ## mcp_web_search
 
