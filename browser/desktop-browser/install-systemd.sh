@@ -17,10 +17,10 @@ fi
 source /etc/os-release
 case "${ID:-}" in
     ubuntu)
-        chromium_package=chromium-browser
+        browser_packages=(python3-venv)
         ;;
     debian)
-        chromium_package=chromium
+        browser_packages=(chromium)
         ;;
     *)
         echo "Unsupported apt distribution: ${ID:-unknown}" >&2
@@ -31,7 +31,7 @@ esac
 apt-get update
 apt-get install -y --no-install-recommends \
     ca-certificates \
-    "$chromium_package" \
+    "${browser_packages[@]}" \
     dbus-x11 \
     fluxbox \
     fonts-noto-cjk \
@@ -49,6 +49,30 @@ if ! id "$service_user" >/dev/null 2>&1; then
         --home-dir /home/browser-desktop \
         --shell /usr/sbin/nologin \
         "$service_user"
+fi
+
+install -d -m0755 /opt/browser-desktop/bin
+if [[ "${ID}" == "ubuntu" ]]; then
+    # Ubuntu's Chromium Snap cannot run inside a regular system service cgroup.
+    # Use Playwright's unconfined Chromium build instead.
+    playwright_version=1.62.0
+    playwright_venv=/opt/browser-desktop/playwright
+    playwright_browsers=/opt/browser-desktop/ms-playwright
+    python3 -m venv "$playwright_venv"
+    "${playwright_venv}/bin/pip" install --disable-pip-version-check --no-cache-dir \
+        "playwright==${playwright_version}"
+    PLAYWRIGHT_BROWSERS_PATH="$playwright_browsers" \
+        "${playwright_venv}/bin/playwright" install-deps chromium
+    PLAYWRIGHT_BROWSERS_PATH="$playwright_browsers" \
+        "${playwright_venv}/bin/playwright" install chromium
+    chromium_bin="$(find "$playwright_browsers" -type f -path '*/chrome-linux/chrome' -perm -u+x | sort | tail -n 1)"
+    if [[ -z "$chromium_bin" ]]; then
+        echo "Playwright Chromium installation did not produce a browser binary" >&2
+        exit 1
+    fi
+    ln -sfn "$chromium_bin" /opt/browser-desktop/bin/chromium
+else
+    ln -sfn /usr/bin/chromium /opt/browser-desktop/bin/chromium
 fi
 
 install -Dm0755 \

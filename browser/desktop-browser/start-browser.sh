@@ -10,6 +10,7 @@ start_url="${START_URL:-about:blank}"
 browser_home="${HOME:-/home/browser}"
 profile_dir="${BROWSER_PROFILE_DIR:-${browser_home}/.config/chromium}"
 runtime_dir="${BROWSER_RUNTIME_DIR:-/run/browser}"
+log_dir="${BROWSER_LOG_DIR:-${runtime_dir}}"
 novnc_address="${NOVNC_LISTEN_ADDRESS:-0.0.0.0}"
 novnc_port="${NOVNC_LISTEN_PORT:-6080}"
 cdp_address="${CDP_LISTEN_ADDRESS:-0.0.0.0}"
@@ -46,7 +47,7 @@ if ((${#vnc_password} > 8)); then
 fi
 
 export DISPLAY=":${display_number}"
-mkdir -p "$runtime_dir" "$profile_dir"
+mkdir -p "$runtime_dir" "$profile_dir" "$log_dir"
 
 pids=()
 cleanup() {
@@ -74,7 +75,7 @@ if ! xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
     exit 1
 fi
 
-fluxbox >"${runtime_dir}/fluxbox.log" 2>&1 &
+fluxbox >"${log_dir}/fluxbox.log" 2>&1 &
 pids+=("$!")
 
 vnc_password_file="${runtime_dir}/vnc.pass"
@@ -83,13 +84,13 @@ x11vnc \
     -display "$DISPLAY" \
     -rfbauth "$vnc_password_file" \
     -forever -shared -localhost -rfbport 5900 \
-    >"${runtime_dir}/x11vnc.log" 2>&1 &
+    >"${log_dir}/x11vnc.log" 2>&1 &
 pids+=("$!")
 
 websockify \
     --web=/usr/share/novnc/ \
     "${novnc_address}:${novnc_port}" localhost:5900 \
-    >"${runtime_dir}/novnc.log" 2>&1 &
+    >"${log_dir}/novnc.log" 2>&1 &
 pids+=("$!")
 
 chromium_args=(
@@ -114,7 +115,7 @@ if [[ -n "${CHROMIUM_FLAGS:-}" ]]; then
 fi
 
 dbus-run-session -- "$chromium_bin" "${chromium_args[@]}" "$start_url" \
-    >"${runtime_dir}/chromium.log" 2>&1 &
+    >"${log_dir}/chromium.log" 2>&1 &
 pids+=("$!")
 
 echo "Browser ready: noVNC on ${novnc_address}:${novnc_port}, CDP on ${cdp_address}:${cdp_port}"

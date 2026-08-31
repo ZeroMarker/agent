@@ -47,7 +47,9 @@ sudo ./install-systemd.sh
 
 安装脚本会安装 Chromium、Xvfb、Fluxbox、x11vnc、noVNC 等依赖，生成一个随机的
 8 字符 VNC 密码，并启动服务。密码及其他配置位于 `/etc/default/browser-desktop`。
-Ubuntu 使用发行版提供的 Chromium Snap，Debian 使用原生 `chromium` 软件包。
+Ubuntu 的 Chromium Snap 无法在普通 system service cgroup 中启动，因此安装脚本会使用
+Playwright 提供的 Chromium 构建；Debian 使用发行版原生 `chromium` 软件包。浏览器以
+独立低权限用户运行，并默认关闭 Chromium sandbox，以兼容 Ubuntu 的 user namespace 限制。
 
 常用管理命令：
 
@@ -59,7 +61,7 @@ sudo systemctl stop browser-desktop
 ```
 
 修改 `/etc/default/browser-desktop` 后需要重启服务。各进程的详细日志位于
-`/run/browser-desktop/`；该目录会在重启后重新创建。
+`/var/log/browser-desktop/`。
 
 卸载服务（保留 Chromium 和其他系统软件包）：
 

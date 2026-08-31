@@ -30,6 +30,7 @@
 | `netdata.20070809.xyz` | 127.0.0.1:19999 | 是 |
 | `212.20070809.xyz` | 127.0.0.1:8512 | 是 |
 | `dsh.20070809.xyz` | 127.0.0.1:3080 | 是 |
+| `cr.20070809.xyz` | 127.0.0.1:6080（Chromium noVNC） | 是 |
 | `ibkr.20070809.xyz` | 127.0.0.1:8081 | 否（免密） |
 
 结构说明：
@@ -39,6 +40,7 @@
 - `encode gzip` 压缩响应；`basicauth { admin <hash> }` 为每个子站点套同一套账号；`ibkr` 是唯一免密项（继承原 `/public` 豁免）。
 - 旧路径代理（`/tiktok` `/douyin` `/edit` `/netdata` `/212` `/public/ibkr`）已全部移除，改为子域名；旧路径访问已失效。
 - `dsh.20070809.xyz` 承载 dsh web：它是**绝对根路径 SPA**（`/assets` `/plugins` `/api`/WebSocket 都以 `/` 为基准），无法与 `20070809.xyz` 根路径（被 SysMon 占用 `/api`·`/manifest`）共存于同一主机，故用独立子域名。
+- `cr.20070809.xyz` 反代 Chromium 的 noVNC 服务；访问根路径会跳转到自动连接、按比例缩放的 `/vnc.html`，WebSocket 由 Caddy 自动透传。外层使用共享 Basic Auth，进入 noVNC 后仍需输入 VNC 密码。
 
 **dsh web 注意**：主 GUI 与 agent 的 `opencode_usage` 工具可从公网子域名访问；但 dsh 的设置/提供方目录（`/api/settings.describe`）与插件的用量面板/设置卡片都被**仅回环（loopback-only）**保护，走公网会返回 403。配置这些需在本机用 `http://127.0.0.1:3080` 打开。
 
