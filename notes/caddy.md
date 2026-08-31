@@ -31,11 +31,12 @@
 | `212.20070809.xyz` | 127.0.0.1:8512 | 是 |
 | `dsh.20070809.xyz` | 127.0.0.1:3080 | 是 |
 | `cr.20070809.xyz` | 127.0.0.1:6080（Chromium noVNC） | 是 |
+| `opencode.20070809.xyz` | 127.0.0.1:8090 | 是 |
 | `ibkr.20070809.xyz` | 127.0.0.1:8081 | 否（免密） |
 
 结构说明：
 
-- 每个应用一个独立子域名，在自己根路径运行，站点块里直接 `reverse_proxy`（不再用 `handle_path`/`redir`）。
+- 每个应用一个独立子域名，在自己根路径运行，站点块里直接 `reverse_proxy`，不再使用旧的路径前缀代理。`cr` 仅额外把根路径重定向到 noVNC 入口页。
 - 站名即 `20070809.xyz` 的子域，需在 Cloudflare 为每个子域加 A/AAAA 指向本机，否则 Caddy 无法签发证书。
 - `encode gzip` 压缩响应；`basicauth { admin <hash> }` 为每个子站点套同一套账号；`ibkr` 是唯一免密项（继承原 `/public` 豁免）。
 - 旧路径代理（`/tiktok` `/douyin` `/edit` `/netdata` `/212` `/public/ibkr`）已全部移除，改为子域名；旧路径访问已失效。
@@ -62,6 +63,10 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8766/   # tiktok 后�
 # DNS 生效后访问子域名（除 ibkr 外需 admin 密码）：
 curl -k -u admin:<密码> -o /dev/null -w '%{http_code}\n' https://tiktok.20070809.xyz/
 curl -k -o /dev/null -w '%{http_code}\n' https://ibkr.20070809.xyz/   # 免密
+# Chromium/noVNC：根路径 302；未认证访问入口页为 401；本机后端为 200
+curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/
+curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/vnc.html
+curl -o /dev/null -w '%{http_code}\n' http://127.0.0.1:6080/vnc.html
 ```
 
 证书存放位置：

@@ -4,6 +4,34 @@
 Chromium 负责浏览网页，x11vnc + noVNC 将桌面提供到浏览器中。另有 CDP 端口供
 Playwright、Puppeteer 或其他 Agent 接入。支持 Docker Compose 和原生 systemd 两种部署。
 
+## 当前实例
+
+本机使用 Ubuntu 24.04 ARM64 + systemd 运行，实际拓扑如下：
+
+```text
+https://cr.20070809.xyz
+  -> Caddy HTTPS + Basic Auth
+  -> 127.0.0.1:6080 (noVNC/WebSocket)
+  -> 127.0.0.1:5900 (x11vnc，无 VNC 密码)
+  -> Xvfb :99 + Fluxbox + Chromium
+
+Agent -> 127.0.0.1:9222 (CDP，仅本机)
+```
+
+| 项目 | 当前值 |
+|---|---|
+| systemd 服务 | `browser-desktop.service`，已启用并运行 |
+| 公网入口 | `https://cr.20070809.xyz` |
+| 公网认证 | Caddy Basic Auth |
+| VNC 认证 | 已关闭（`VNC_AUTH=false`） |
+| noVNC | `127.0.0.1:6080` |
+| CDP | `127.0.0.1:9222` |
+| 浏览器程序 | `/opt/browser-desktop/bin/chromium` |
+| 用户数据 | `/home/browser-desktop/.config/chromium` |
+| 进程日志 | `/var/log/browser-desktop/` |
+
+公网只开放 Caddy 的 80/443；5900、6080 和 9222 均不得直接暴露。
+
 ## Docker Compose
 
 需要 Docker Engine 和 Docker Compose v2。
@@ -45,8 +73,9 @@ cd browser/desktop-browser
 sudo ./install-systemd.sh
 ```
 
-安装脚本会安装 Chromium、Xvfb、Fluxbox、x11vnc、noVNC 等依赖，生成一个随机的
-8 字符 VNC 密码，并启动服务。密码及其他配置位于 `/etc/default/browser-desktop`。
+安装脚本会安装 Chromium、Xvfb、Fluxbox、x11vnc、noVNC 等依赖，默认生成一个随机的
+8 字符 VNC 密码并启动服务。密码及其他配置位于 `/etc/default/browser-desktop`；本机实例
+因已有 Caddy Basic Auth，另行设置了 `VNC_AUTH=false`。
 Ubuntu 的 Chromium Snap 无法在普通 system service cgroup 中启动，因此安装脚本会使用
 Playwright 提供的 Chromium 构建；Debian 使用发行版原生 `chromium` 软件包。浏览器以
 独立低权限用户运行，并默认关闭 Chromium sandbox，以兼容 Ubuntu 的 user namespace 限制。
@@ -80,7 +109,7 @@ sudo systemctl daemon-reload
 
 ## 自动化接入
 
-CDP 默认只暴露到宿主机 `127.0.0.1:9222`。容器健康后可以检查：
+CDP 默认只暴露到本机 `127.0.0.1:9222`。服务健康后可以检查：
 
 ```bash
 curl http://127.0.0.1:9222/json/version
@@ -102,10 +131,12 @@ await page.goto("https://example.com");
 Docker 的常用环境变量见 `.env.example`；systemd 的对应配置位于
 `/etc/default/browser-desktop`，模板见 `systemd/browser-desktop.env.example`：
 
+- `VNC_AUTH`：是否启用 VNC 自身认证；关闭前必须确保 noVNC 有外层认证且只监听回环。
+- `VNC_PASSWORD`：VNC 密码，仅在 `VNC_AUTH=true` 时使用，最多 8 个字符。
 - `START_URL`：启动页。
 - `SCREEN_WIDTH`、`SCREEN_HEIGHT`、`SCREEN_DEPTH`：虚拟屏幕参数。
-- `NOVNC_BIND_ADDRESS`、`NOVNC_PORT`：noVNC 的宿主机监听地址和端口。
-- `CDP_BIND_ADDRESS`、`CDP_PORT`：CDP 的宿主机监听地址和端口。
+- Docker：`NOVNC_BIND_ADDRESS`、`NOVNC_PORT`、`CDP_BIND_ADDRESS`、`CDP_PORT` 控制宿主机映射。
+- systemd：`NOVNC_LISTEN_ADDRESS`、`NOVNC_LISTEN_PORT`、`CDP_LISTEN_ADDRESS`、`CDP_LISTEN_PORT` 控制监听。
 - `CHROMIUM_FLAGS`：追加 Chromium 参数，以空格分隔。
 
 服务默认只监听 `127.0.0.1`。如需远程使用，建议通过 SSH 隧道访问：
@@ -115,4 +146,30 @@ ssh -L 6080:127.0.0.1:6080 -L 9222:127.0.0.1:9222 user@server
 ```
 
 不要把 CDP 端口直接暴露到公网；CDP 本身没有认证，拿到该端口通常就能完整控制
-浏览器及其登录态。noVNC 即便设置了密码，也应配合防火墙、SSH 隧道或 HTTPS 反向代理。
+浏览器及其登录态。当前实例的 VNC 密码已关闭，安全边界是回环监听和 Caddy Basic Auth；
+若绕过 Caddy 暴露 noVNC，等同于公开浏览器桌面。
+
+## Caddy 反向代理
+
+当前站点配置的关键结构如下，WebSocket 无需额外指令：
+
+```caddyfile
+cr.20070809.xyz {
+    encode gzip
+    basicauth {
+        admin <bcrypt-hash>
+    }
+    redir / /vnc.html?autoconnect=1&resize=scale 302
+    reverse_proxy 127.0.0.1:6080
+}
+```
+
+检查完整链路：
+
+```bash
+systemctl is-active browser-desktop caddy
+curl http://127.0.0.1:6080/vnc.html                    # 200
+curl http://127.0.0.1:9222/json/version                # CDP JSON
+curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/          # 302
+curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/vnc.html  # 401（未认证）
+```
