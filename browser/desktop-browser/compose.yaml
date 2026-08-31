@@ -1,0 +1,22 @@
+services:
+  browser:
+    build:
+      context: .
+    init: true
+    restart: unless-stopped
+    shm_size: 1gb
+    environment:
+      VNC_PASSWORD: "${VNC_PASSWORD:-browser}"
+      START_URL: "${START_URL:-about:blank}"
+      SCREEN_WIDTH: "${SCREEN_WIDTH:-1440}"
+      SCREEN_HEIGHT: "${SCREEN_HEIGHT:-900}"
+      SCREEN_DEPTH: "${SCREEN_DEPTH:-24}"
+      CHROMIUM_FLAGS: "${CHROMIUM_FLAGS:-}"
+    ports:
+      - "${NOVNC_BIND_ADDRESS:-127.0.0.1}:${NOVNC_PORT:-6080}:6080"
+      - "${CDP_BIND_ADDRESS:-127.0.0.1}:${CDP_PORT:-9222}:9222"
+    volumes:
+      - chromium-data:/home/browser/.config/chromium
+
+volumes:
+  chromium-data:
