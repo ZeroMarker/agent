@@ -51,6 +51,10 @@ Ubuntu 的 Chromium Snap 无法在普通 system service cgroup 中启动，因�
 Playwright 提供的 Chromium 构建；Debian 使用发行版原生 `chromium` 软件包。浏览器以
 独立低权限用户运行，并默认关闭 Chromium sandbox，以兼容 Ubuntu 的 user namespace 限制。
 
+若服务只通过带认证的 Caddy 等反向代理访问，可在 `/etc/default/browser-desktop` 设置
+`VNC_AUTH=false` 取消第二层 VNC 密码，然后重启服务。此时必须继续让 `6080` 仅监听
+`127.0.0.1`，不能直接暴露到公网。
+
 常用管理命令：
 
 ```bash

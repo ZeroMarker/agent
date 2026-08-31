@@ -6,6 +6,7 @@ screen_width="${SCREEN_WIDTH:-1440}"
 screen_height="${SCREEN_HEIGHT:-900}"
 screen_depth="${SCREEN_DEPTH:-24}"
 vnc_password="${VNC_PASSWORD:-browser}"
+vnc_auth="${VNC_AUTH:-true}"
 start_url="${START_URL:-about:blank}"
 browser_home="${HOME:-/home/browser}"
 profile_dir="${BROWSER_PROFILE_DIR:-${browser_home}/.config/chromium}"
@@ -37,14 +38,23 @@ for value in "$display_number" "$screen_width" "$screen_height" "$screen_depth" 
     fi
 done
 
-if [[ -z "$vnc_password" ]]; then
-    echo "VNC_PASSWORD must not be empty" >&2
-    exit 2
-fi
-if ((${#vnc_password} > 8)); then
-    echo "VNC_PASSWORD must be at most 8 characters (VNC protocol limit)" >&2
-    exit 2
-fi
+case "$vnc_auth" in
+    true)
+        if [[ -z "$vnc_password" ]]; then
+            echo "VNC_PASSWORD must not be empty when VNC_AUTH=true" >&2
+            exit 2
+        fi
+        if ((${#vnc_password} > 8)); then
+            echo "VNC_PASSWORD must be at most 8 characters (VNC protocol limit)" >&2
+            exit 2
+        fi
+        ;;
+    false) ;;
+    *)
+        echo "VNC_AUTH must be true or false" >&2
+        exit 2
+        ;;
+esac
 
 export DISPLAY=":${display_number}"
 mkdir -p "$runtime_dir" "$profile_dir" "$log_dir"
@@ -79,10 +89,16 @@ fluxbox >"${log_dir}/fluxbox.log" 2>&1 &
 pids+=("$!")
 
 vnc_password_file="${runtime_dir}/vnc.pass"
-x11vnc -storepasswd "$vnc_password" "$vnc_password_file" >/dev/null
+x11vnc_auth_args=()
+if [[ "$vnc_auth" == "true" ]]; then
+    x11vnc -storepasswd "$vnc_password" "$vnc_password_file" >/dev/null
+    x11vnc_auth_args=(-rfbauth "$vnc_password_file")
+else
+    x11vnc_auth_args=(-nopw)
+fi
 x11vnc \
     -display "$DISPLAY" \
-    -rfbauth "$vnc_password_file" \
+    "${x11vnc_auth_args[@]}" \
     -forever -shared -localhost -rfbport 5900 \
     >"${log_dir}/x11vnc.log" 2>&1 &
 pids+=("$!")

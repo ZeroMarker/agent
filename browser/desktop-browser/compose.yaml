@@ -6,6 +6,7 @@ services:
     restart: unless-stopped
     shm_size: 1gb
     environment:
+      VNC_AUTH: "${VNC_AUTH:-true}"
       VNC_PASSWORD: "${VNC_PASSWORD:-browser}"
       START_URL: "${START_URL:-about:blank}"
       SCREEN_WIDTH: "${SCREEN_WIDTH:-1440}"
