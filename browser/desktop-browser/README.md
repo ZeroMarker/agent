@@ -80,6 +80,38 @@ Ubuntu 的 Chromium Snap 无法在普通 system service cgroup 中启动，因�
 Playwright 提供的 Chromium 构建；Debian 使用发行版原生 `chromium` 软件包。浏览器以
 独立低权限用户运行，并默认关闭 Chromium sandbox，以兼容 Ubuntu 的 user namespace 限制。
 
+### Ubuntu noVNC 与 Node.js 18
+
+Ubuntu 24.04 的 `novnc` 软件包硬依赖发行版的 `nodejs`，当前会安装 Node.js 18。这里的
+Node.js 是 Ubuntu 对 noVNC 的打包依赖；`browser-desktop` 的运行脚本和 Chromium 本身
+并不直接依赖 Node.js。
+
+不要直接执行 `apt-get remove nodejs` 后再执行 `apt-get autoremove`：APT 会连带卸载
+`novnc`、`python3-novnc` 及部分 Python 依赖。已经运行的 websockify 进程可能暂时存活，
+但 noVNC 页面会在进程退出、服务重启或文件清理后失效，Caddy 随后可能返回 502。
+
+发生此问题时可恢复发行版软件包并重启服务：
+
+```bash
+sudo apt-get install --no-install-recommends novnc
+sudo systemctl restart browser-desktop
+curl -f http://127.0.0.1:6080/vnc.html >/dev/null
+curl -f http://127.0.0.1:9222/json/version >/dev/null
+```
+
+本机的 Pi CLI 使用独立目录中的 Node.js 22，不应依赖 `/usr/bin/node`。交互式 shell 已将
+该目录放在 PATH 前部；若通过 systemd、cron 等非交互环境启动 Pi，必须显式设置 PATH，
+否则可能误用 noVNC 拉入的 Node.js 18，并因缺少较新的 Node API 而启动失败：
+
+```ini
+Environment=PATH=/home/ubuntu/.local/share/pi-node/node-v22.23.2-linux-arm64/bin:/usr/local/bin:/usr/bin:/bin
+```
+
+可选待办：改为在 `/opt/browser-desktop` 独立部署上游 noVNC 静态资源，或采用其他不依赖
+发行版 `nodejs` 包的安装方式，并固定版本、校验下载内容及记录升级流程。完成后可移除
+Ubuntu `novnc` 包及系统 Node.js 18，同时保留 Python `websockify`；这不是当前部署的必要
+修复，实施前需要验证安装、升级、回滚和服务重启后的完整链路。
+
 若服务只通过带认证的 Caddy 等反向代理访问，可在 `/etc/default/browser-desktop` 设置
 `VNC_AUTH=false` 取消第二层 VNC 密码，然后重启服务。此时必须继续让 `6080` 仅监听
 `127.0.0.1`，不能直接暴露到公网。
