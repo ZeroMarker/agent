@@ -104,7 +104,7 @@ x11vnc \
 pids+=("$!")
 
 websockify \
-    --web=/usr/share/novnc/ \
+    --web=/opt/browser-desktop/novnc/ \
     "${novnc_address}:${novnc_port}" localhost:5900 \
     >"${log_dir}/novnc.log" 2>&1 &
 pids+=("$!")

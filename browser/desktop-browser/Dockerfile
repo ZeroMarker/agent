@@ -2,6 +2,8 @@ FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+COPY --chmod=755 install-novnc.sh /usr/local/bin/install-novnc
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
@@ -11,11 +13,11 @@ RUN apt-get update \
         fluxbox \
         fonts-noto-cjk \
         fonts-noto-color-emoji \
-        novnc \
         websockify \
         x11-utils \
         x11vnc \
         xvfb \
+    && /usr/local/bin/install-novnc \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 --shell /bin/bash browser \
     && mkdir -p /home/browser/.config/chromium /run/browser \

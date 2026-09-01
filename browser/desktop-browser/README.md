@@ -73,44 +73,43 @@ cd browser/desktop-browser
 sudo ./install-systemd.sh
 ```
 
-安装脚本会安装 Chromium、Xvfb、Fluxbox、x11vnc、noVNC 等依赖，默认生成一个随机的
+安装脚本会安装 Chromium、Xvfb、Fluxbox、x11vnc、websockify 等依赖，并把经过
+SHA-256 校验的上游 noVNC 静态资源安装到 `/opt/browser-desktop/novnc`。脚本默认生成一个随机的
 8 字符 VNC 密码并启动服务。密码及其他配置位于 `/etc/default/browser-desktop`；本机实例
 因已有 Caddy Basic Auth，另行设置了 `VNC_AUTH=false`。
 Ubuntu 的 Chromium Snap 无法在普通 system service cgroup 中启动，因此安装脚本会使用
 Playwright 提供的 Chromium 构建；Debian 使用发行版原生 `chromium` 软件包。浏览器以
 独立低权限用户运行，并默认关闭 Chromium sandbox，以兼容 Ubuntu 的 user namespace 限制。
 
-### Ubuntu noVNC 与 Node.js 18
+### noVNC 版本与升级
 
-Ubuntu 24.04 的 `novnc` 软件包硬依赖发行版的 `nodejs`，当前会安装 Node.js 18。这里的
-Node.js 是 Ubuntu 对 noVNC 的打包依赖；`browser-desktop` 的运行脚本和 Chromium 本身
-并不直接依赖 Node.js。
+本项目不安装发行版的 `novnc` 包。它会拉取固定的上游 noVNC 1.7.0 源码归档、校验
+SHA-256 后作为纯静态资源使用；运行时只需要 Python `websockify`，不依赖 Node.js。
+实际版本目录为 `/opt/browser-desktop/novnc-1.7.0`，`/opt/browser-desktop/novnc` 是指向
+当前版本的符号链接。
 
-不要直接执行 `apt-get remove nodejs` 后再执行 `apt-get autoremove`：APT 会连带卸载
-`novnc`、`python3-novnc` 及部分 Python 依赖。已经运行的 websockify 进程可能暂时存活，
-但 noVNC 页面会在进程退出、服务重启或文件清理后失效，Caddy 随后可能返回 502。
-
-发生此问题时可恢复发行版软件包并重启服务：
+从旧版部署迁移时，先重新运行安装脚本并验证服务，再移除发行版 noVNC：
 
 ```bash
-sudo apt-get install --no-install-recommends novnc
+sudo ./install-systemd.sh
+curl -f http://127.0.0.1:6080/vnc.html >/dev/null
+sudo apt-get remove novnc
 sudo systemctl restart browser-desktop
 curl -f http://127.0.0.1:6080/vnc.html >/dev/null
 curl -f http://127.0.0.1:9222/json/version >/dev/null
 ```
 
-本机的 Pi CLI 使用独立目录中的 Node.js 22，不应依赖 `/usr/bin/node`。交互式 shell 已将
-该目录放在 PATH 前部；若通过 systemd、cron 等非交互环境启动 Pi，必须显式设置 PATH，
-否则可能误用 noVNC 拉入的 Node.js 18，并因缺少较新的 Node API 而启动失败：
+此后 `nodejs` 已不再是 browser-desktop 的依赖。仅在确认没有其他程序使用系统 Node.js
+后，才删除旧部署拉入的 Node.js 18；先用模拟运行检查 APT 将删除的内容：
 
-```ini
-Environment=PATH=/home/ubuntu/.local/share/pi-node/node-v22.23.2-linux-arm64/bin:/usr/local/bin:/usr/bin:/bin
+```bash
+sudo apt-get --simulate autoremove
+sudo apt-get autoremove
 ```
 
-可选待办：改为在 `/opt/browser-desktop` 独立部署上游 noVNC 静态资源，或采用其他不依赖
-发行版 `nodejs` 包的安装方式，并固定版本、校验下载内容及记录升级流程。完成后可移除
-Ubuntu `novnc` 包及系统 Node.js 18，同时保留 Python `websockify`；这不是当前部署的必要
-修复，实施前需要验证安装、升级、回滚和服务重启后的完整链路。
+升级 noVNC 时，同时修改 `install-novnc.sh` 中的默认版本和对应归档 SHA-256，重新运行
+安装脚本并验证 noVNC 页面和 WebSocket 连接。旧版本目录会保留，回滚时可把
+`/opt/browser-desktop/novnc` 重新指向旧目录后重启服务。
 
 若服务只通过带认证的 Caddy 等反向代理访问，可在 `/etc/default/browser-desktop` 设置
 `VNC_AUTH=false` 取消第二层 VNC 密码，然后重启服务。此时必须继续让 `6080` 仅监听

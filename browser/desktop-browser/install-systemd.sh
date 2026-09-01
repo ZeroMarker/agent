@@ -32,15 +32,17 @@ apt-get update
 apt-get install -y --no-install-recommends \
     ca-certificates \
     "${browser_packages[@]}" \
+    curl \
     dbus-x11 \
     fluxbox \
     fonts-noto-cjk \
     fonts-noto-color-emoji \
-    novnc \
     websockify \
     x11-utils \
     x11vnc \
     xvfb
+
+"${script_dir}/install-novnc.sh"
 
 if ! id "$service_user" >/dev/null 2>&1; then
     useradd \
