@@ -107,6 +107,21 @@ sudo apt-get --simulate autoremove
 sudo apt-get autoremove
 ```
 
+当前实例的外部 SSH 客户端还会启动 Orca relay，它自身要求 Node.js 18+ 和 npm。该需求与
+noVNC 无关；本机把 Pi 自带的 Node.js 22 暴露给非交互 SSH 环境，而不是重新安装发行版
+Node.js 18：
+
+```bash
+sudo ln -sfn /home/ubuntu/.local/share/pi-node/node-v22.23.2-linux-arm64/bin/node /usr/local/bin/node
+sudo ln -sfn /home/ubuntu/.local/share/pi-node/node-v22.23.2-linux-arm64/bin/npm /usr/local/bin/npm
+sudo ln -sfn /home/ubuntu/.local/share/pi-node/node-v22.23.2-linux-arm64/bin/npx /usr/local/bin/npx
+env -i HOME="$HOME" PATH=/usr/local/bin:/usr/bin:/bin node --version
+env -i HOME="$HOME" PATH=/usr/local/bin:/usr/bin:/bin npm --version
+```
+
+升级或移动 Pi 的 Node.js 目录后需要同步更新这三个符号链接，否则外部 SSH relay 会再次
+报告找不到 Node.js。
+
 升级 noVNC 时，同时修改 `install-novnc.sh` 中的默认版本和对应归档 SHA-256，重新运行
 安装脚本并验证 noVNC 页面和 WebSocket 连接。旧版本目录会保留，回滚时可把
 `/opt/browser-desktop/novnc` 重新指向旧目录后重启服务。
