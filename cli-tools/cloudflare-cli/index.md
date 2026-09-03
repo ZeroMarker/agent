@@ -73,6 +73,66 @@ cf complete bash >> ~/.bashrc
 
 部署已有 Build Output API 文件时使用 `cf deploy --prebuilt`。`--secrets-file` 可从 JSON 或 `.env` 文件上传 secrets；这类文件应放在仓库外或加入 `.gitignore`。
 
+## Cloudflare Pages Drop / Direct Upload
+
+Cloudflare Pages 的“Drop”通常指控制台里的 Drag and drop；命令行对应的是 Direct Upload。两者都适合已经生成好的静态文件目录。单个文件最大 25 MiB；Wrangler 最多上传 20,000 个文件，控制台拖放最多 1,000 个文件。
+
+### 网页拖放
+
+1. 打开 Cloudflare Dashboard → Workers & Pages。
+2. 选择 **Create application → Get started → Drag and drop your files**。
+3. 填写项目名，拖入构建输出目录或 zip 文件。
+4. 点击 **Deploy site**；已有项目则选择 **Create a new deployment**。
+
+项目默认地址为 `<project-name>.pages.dev`；如果名称已被占用，Cloudflare 会附加随机后缀。
+
+### Wrangler 命令行上传
+
+`cf` 负责账户、认证和 Pages 项目管理；本机 `cf 0.8.0` 的 Pages deployment API 命令只提交部署元数据，不能把本地目录自动打包成资产清单。因此上传本地目录时使用 Cloudflare 官方 Wrangler Pages 上传器：
+
+```bash
+# 推荐使用 Cloudflare API Token；不要把 token 写进仓库
+export CLOUDFLARE_API_TOKEN='你的 API Token'
+export CLOUDFLARE_ACCOUNT_ID='你的 Account ID'
+
+# 创建 Direct Upload 项目（只需一次）
+cf pages projects create --body '{"name":"my-site","production_branch":"main"}'
+
+# 上传静态目录并发布生产版本
+npx wrangler pages deploy ./dist --project-name my-site --branch main
+
+# 查看项目和部署
+cf pages projects get my-site
+cf pages projects deployments list my-site
+```
+
+如果项目已经存在，只执行上传和查看命令即可。纯静态项目可直接把仓库根目录作为目录上传，但应先排除 `.git`、依赖目录、日志、密钥和不需要公开的文档；更稳妥的做法是准备一个专门的 `dist/` 输出目录。
+
+### 用 `cf` 完成认证
+
+```bash
+cf auth login
+cf auth whoami
+cf pages projects list
+```
+
+`cf auth whoami` 能确认当前账号与 Pages 权限。Wrangler 在非交互环境中通常要求 `CLOUDFLARE_API_TOKEN`；`cf` 保存的 OAuth profile 不应复制到脚本或提交到仓库。需要持续部署时，建议在 CI 的 secret 中配置 API Token 和 Account ID。
+
+### 验证与排障
+
+```bash
+curl -I https://my-site.pages.dev/
+cf pages projects get my-site
+cf pages projects deployments list my-site
+```
+
+- `404`：先检查部署返回的唯一预览地址，再检查项目的 canonical deployment；部署完成后 `<project-name>.pages.dev` 才会指向最新生产版本。
+- `manifest field was expected`：说明直接调用了 Pages deployment API，但没有先完成 Direct Upload 资产上传；改用 `npx wrangler pages deploy` 或控制台拖放。
+- Wrangler 提示缺少 `CLOUDFLARE_API_TOKEN`：设置 API Token，或在可交互终端执行 `npx wrangler login`。
+- `functions/` 不是普通静态资源；需要 Pages Functions 时使用 Wrangler，并从包含 `functions/` 的项目目录部署。控制台拖放不负责编译该目录。
+
+参考：[Pages Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/)、[Pages API：Upload asset](https://developers.cloudflare.com/api/go/resources/pages/subresources/assets/methods/upload/)、[Pages API：Create deployment](https://developers.cloudflare.com/api/resources/pages/subresources/projects/subresources/deployments/methods/create/)。
+
 ## 命令总览（`cf --help`）
 
 | 命令 | 用途 |

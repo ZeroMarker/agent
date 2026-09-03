@@ -28,7 +28,7 @@
 ## CLI 工具（cli-tools/）
 
 - [bilibili-cli](cli-tools/bilibili-cli/index.md)：B 站终端 CLI 的安装、浏览/搜索/互动命令和 Agent 使用说明。
-- [cloudflare-cli](cli-tools/cloudflare-cli/index.md)：Cloudflare 统一 CLI `cf` 的安装、认证、部署、命令总览和全局参数。
+- [cloudflare-cli](cli-tools/cloudflare-cli/index.md)：Cloudflare 统一 CLI `cf` 的安装、认证、部署、Pages Drop/Direct Upload、命令总览和全局参数。
 - [lark-cli](cli-tools/lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明。
 - [OpenCLI](cli-tools/opencli/index.md)：把任意网站变成 CLI 并让 Agent 用已登录 Chrome 操作网页的统一工具——内置 100+ 站点 adapter、browser 原语、CLI Hub 与插件。
 - [rdt-cli](cli-tools/rdt-cli/index.md)：Reddit 终端 CLI 的安装、浏览器 Cookie 认证、浏览/搜索/互动命令和 Agent 使用说明。
