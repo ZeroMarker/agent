@@ -73,9 +73,40 @@ cf complete bash >> ~/.bashrc
 
 部署已有 Build Output API 文件时使用 `cf deploy --prebuilt`。`--secrets-file` 可从 JSON 或 `.env` 文件上传 secrets；这类文件应放在仓库外或加入 `.gitignore`。
 
-## Cloudflare Pages Drop / Direct Upload
+## Cloudflare Drop、Pages 与 Workers
 
-Cloudflare Pages 的“Drop”通常指控制台里的 Drag and drop；命令行对应的是 Direct Upload。两者都适合已经生成好的静态文件目录。单个文件最大 25 MiB；Wrangler 最多上传 20,000 个文件，控制台拖放最多 1,000 个文件。
+这三个入口不要混为一谈：
+
+| 入口 | 定位 | 登录 | 地址与生命周期 | 适合场景 |
+|---|---|---|---|---|
+| [Cloudflare Drop](https://www.cloudflare.com/drop/) | 临时静态站预览 | 开始时不需要 | 临时 `workers.dev` 地址；需在 60 分钟内 claim | AI Agent 或人工快速展示 HTML/CSS/JS |
+| Cloudflare Pages | 正式前端托管 | 需要账号 | 长期 `*.pages.dev`，支持域名、Preview、回滚 | 已有静态站、博客、Git/Direct Upload 项目 |
+| Cloudflare Workers | Cloudflare 当前主要应用平台 | 需要账号 | 长期 Worker/Static Assets 部署 | 新项目、API、SSR、AI、D1/KV/R2 等全栈场景 |
+
+Cloudflare 当前文档建议新项目优先考虑 Workers：Workers 覆盖大多数 Pages 用例，并提供更广泛的能力；Pages 仍然适合已有项目和成熟的静态站工作流。Pages Free 计划目前限制为每月 500 次部署，单站点最多 20,000 个文件；Drop 是临时预览，不应当作版本管理或正式托管。
+
+### Cloudflare Drop（临时发布）
+
+Drop 面向“把一个包含 `index.html` 的文件夹或 ZIP 立刻变成公网预览”。访问 [cloudflare.com/drop](https://www.cloudflare.com/drop/)，拖入静态站目录或 ZIP 后会得到 `workers.dev` 地址。开始时无需账号，但必须在 60 分钟内 claim 才能保留部署；claim URL 等同于所有权凭证，应当作为敏感链接保存，不要公开到日志或聊天记录。
+
+Drop 不是 Pages 项目：不提供 Git 自动部署、Pages Functions、分支 Preview、正式回滚或长期项目管理。它也不是一个适合上传密钥、用户数据或未公开源码的安全交换箱。
+
+### Drop 的 Agent / CLI 路径
+
+Cloudflare 对本地 CLI 工作流建议使用 Wrangler。未认证时可创建临时部署：
+
+```bash
+npm exec --yes wrangler@latest -- deploy ./dist \
+  --name my-static-site \
+  --temporary \
+  --compatibility-date 2026-09-03
+```
+
+命令输出后应同时记录 live `workers.dev` URL 和 claim URL。`--temporary` 只用于未认证的临时部署；如果 Wrangler 已通过 OAuth、`CLOUDFLARE_API_TOKEN` 或全局 API key 认证，不要使用 `--temporary`，改用普通 `wrangler deploy`。
+
+### Pages Drop / Direct Upload
+
+这里的“Pages Drop”通常是控制台里的 Drag and drop；它与上面的 Cloudflare Drop 是不同产品。Pages 拖放需要 Cloudflare 账号，上传目录或 ZIP 后会创建长期 Pages 项目。Direct Upload 则是 Pages 的命令行/API 工作流。单个文件最大 25 MiB；Wrangler 最多上传 20,000 个文件，控制台拖放最多 1,000 个文件。
 
 ### 网页拖放
 
