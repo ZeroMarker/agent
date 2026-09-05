@@ -10,6 +10,7 @@
 | --- | --- |
 | `README.md`（本文件） | 唯一 rclone 文档：环境、安装、日常操作、参数、排障 |
 | `mount.sh` | 手动备用挂载脚本（参数自动读取服务单元，零漂移） |
+| `upload.sh` | 上传封装：`upload <folder\|file> [target，默认 ~/pik/TikTok]`，mv 语义（同名不存在整目录移入，已存在合并内容） |
 | `systemd/rclone-pikpak.service` | 服务单元**落盘副本**，与 `/etc/systemd/system/` 同步 |
 
 ## 当前环境
@@ -204,25 +205,16 @@ findmnt ~/pik
 ls ~/pik
 ```
 
-## 常用文件操作
+## 上传封装（mv 语义，源会消失）
 
 ```bash
-# 列出目录
-rclone lsd pik:
-
-# 复制本地文件到远程
-rclone copy ./file.txt pik:"My Upload" -P
-
-# 从远程复制到本地
-rclone copy pik:"My Upload/file.txt" ./ -P
-
-# 移动文件
-rclone move ./local-dir pik:"My Upload" -P
-
-# 删除前先模拟；确认无误后去掉 --dry-run
-rclone delete pik:"My Upload/old-dir" --dry-run
-rclone delete pik:"My Upload/old-dir"
+source rclone/upload.sh && upload ./record1               # ~/pik/TikTok/record1 不存在→整目录移入；已存在→合并内容
+./rclone/upload.sh ./record1 ~/pik/TikTok
 ```
+
+等价手写：`mv record1/ ~/pik/TikTok`（不存在时）／ `mv record1/* ~/pik/TikTok/record1`（已存在时，含隐藏文件）；文件直接 `mv` 进目标。未挂载时拒绝执行。
+
+## 常用文件操作
 
 `copy` 不会删除目标端多余文件；需要镜像同步时才使用 `sync`，并务必先执行 `--dry-run`：
 
