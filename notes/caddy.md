@@ -44,6 +44,17 @@
 
 **dsh web 注意**：跑在 systemd `dsh-web.service` 下（`dsh web --no-open --host 127.0.0.1 --port 3080 --trusted-host dsh.20070809.xyz`，开机自启，崩溃自动重启），版本为 `@deepseek-ai/dsh@0.1.2-rc.1`（全局 npm 装于 pi-node 的 node 下，2026-09-09 由 `0.1.1-rc.2` 升级）。opencode 相关已移除：`oc.20070809.xyz` 站点、`opencode-usage.service`（`/opt/opencode-usage`）、`~/.dsh/profiles/web` 对 `@dsh-ltctfer/dsh-opencode-go-usage` 的依赖/`cordis.patch.yml` 插入项及 `/tmp/dsh-opencode-go-usage` 源码均已删除——该插件（上游最新 0.1.1）引用了已被删除的 `installSettingsSection`，在新版下启动即 crash-loop（`SyntaxError ... does not provide an export named 'installSettingsSection'`），正是此前钉在旧版的原因；移除后升级一次启动成功。公网访问有**两道门**：① 服务端 `/api` browser-trust fence 认 Host，`--trusted-host` 已放行公网域名（缺它时所有 `/api` 走公网都是 403）；② 设置/提供方目录页还有**客户端门**——前端按浏览器地址栏算 `isLoopback`（仅 `localhost`/`127/8`/`::1` 算回环），公网域名打开时设置 mirror 强制 `unavailable`，报 `settings are unavailable in this browser`，服务端改不了。结论：聊天主界面走公网子域名；**改模型/供应商/凭证必须用回环地址开页面**——本机直接开 `http://127.0.0.1:3080`，远程则 `ssh -L 3080:127.0.0.1:3080 ubuntu@<本机IP>` 后在自己电脑开 `http://127.0.0.1:3080`。
 
+**访问 token**：0.1.2-rc.1 起 `dsh web` 启动时生成一次性访问 token，只打印到日志（`dsh web: http://127.0.0.1:3080/?token=...`）；不带 token 访问回环地址一律 401。取当前值：
+
+```bash
+journalctl -u dsh-web.service --no-pager | grep -o 'token=[A-Za-z0-9_-]*' | tail -1
+```
+
+- 打开 `http://127.0.0.1:3080/?token=<值>`（公网为 `https://dsh.20070809.xyz/?token=<值>`，先过 Caddy Basic Auth）→ 303 并 `Set-Cookie: dsh-auth-<kid>=v1.<payload>.<sig>`，之后同一浏览器不再需要 token。
+- cookie 载荷里的 `authority` 绑定签发来源的 host：按回环签发的 cookie 拿到公网域名用是 401，反之亦然；有效期 30 天（`Max-Age=2592000`），`HttpOnly; SameSite=Strict`。
+- token 本身不落盘（`~/.dsh` 内无副本），服务重启后必须重新从日志取。
+- 本笔记不记录 token 值：仓库公开（`github.com/ZeroMarker/agent`），需要时按上面命令现取。
+
 修改配置后的操作顺序（本机实际操作）：
 
 ```bash
