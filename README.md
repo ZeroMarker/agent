@@ -24,6 +24,7 @@
 - [Caddy](notes/caddy.md)：自动 HTTPS、反向代理、静态站点、Docker 与常见排障笔记；含本机 `20070809.xyz` 多子域部署及 `cr` Chromium/noVNC 入口。
 - [Computer](notes/computer.md)：Cloudflare Computer 架构与使用笔记。
 - [DeepSeek Harness 文档导航](notes/dsh-文档导航.md)：deepseek-ai/deepseek-harness 仓库 docs/ 的结构化导航与阅读路径整理。
+- [Codex 插件与技能清理教训](notes/codex-教训.md)：记录技能误触发、插件层级识别、CLI 卸载和清理验证方法。
 
 ## CLI 工具（cli-tools/）
 
