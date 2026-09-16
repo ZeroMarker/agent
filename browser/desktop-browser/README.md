@@ -27,6 +27,7 @@ Agent -> 127.0.0.1:9222 (CDP，仅本机)
 | noVNC | `127.0.0.1:6080` |
 | CDP | `127.0.0.1:9222` |
 | 浏览器程序 | `/opt/browser-desktop/bin/chromium` |
+| 虚拟屏 | `1920x1080x24`（Xvfb `:99`，16:9） |
 | 用户数据 | `/home/browser-desktop/.config/chromium` |
 | 进程日志 | `/var/log/browser-desktop/` |
 
@@ -80,6 +81,44 @@ SHA-256 校验的上游 noVNC 静态资源安装到 `/opt/browser-desktop/novnc`
 Ubuntu 的 Chromium Snap 无法在普通 system service cgroup 中启动，因此安装脚本会使用
 Playwright 提供的 Chromium 构建；Debian 使用发行版原生 `chromium` 软件包。浏览器以
 独立低权限用户运行，并默认关闭 Chromium sandbox，以兼容 Ubuntu 的 user namespace 限制。
+
+### 显示比例与分辨率
+
+虚拟屏分辨率由 Xvfb 的 `-screen 0 WxHxD` 决定（即 `SCREEN_WIDTH`/`SCREEN_HEIGHT`/
+`SCREEN_DEPTH`），本机为 `1920x1080x24`（16:9）。Chromium 以 `--start-maximized` 铺满屏幕，
+窗口实际尺寸比屏幕矮约 22 像素（Fluxbox 工具栏），即 `1920x1058`。
+
+noVNC 侧由 URL 参数 `resize=scale` 决定呈现方式：整幅远端画面等比缩放到浏览器窗口，
+比例与窗口不一致时留黑边，**不会**改变远端分辨率。窗口小于 1920x1080 时画面连同文字一起
+缩小；要看得更大，应调小 `SCREEN_WIDTH`/`SCREEN_HEIGHT`，而不是放大浏览器窗口。
+
+远端自适应（`resize=remote`）在本机不可用：Xvfb 的 RANDR 上限等于启动时的 `-screen` 尺寸，
+且只暴露该尺寸一个模式，因此 x11vnc 协商 `ExtDesktopSize` 时无法改到窗口尺寸。用一个独立的
+`1440x900` 屏复现（不影响运行实例）：
+
+```bash
+Xvfb :98 -screen 0 1440x900x24 +extension RANDR -ac &
+DISPLAY=:98 xrandr                  # maximum 1440x900，仅一个 1440x900 模式
+DISPLAY=:98 xrandr --fb 1920x1080   # screen cannot be larger than 1440x900
+DISPLAY=:98 xrandr --fb 1280x720    # 帧缓冲会缩到 1280x720，但输出仍为 1440x900（无匹配模式），并报 BadValue
+```
+
+结论：`resize=scale` 只是等比缩放；要「随窗口自动匹配」必须换掉 Xvfb（改用支持动态分辨率
+和多模式的方案，如 TigerVNC 自带 Xvnc 或 XRDP）。
+
+修改分辨率的步骤：
+
+```bash
+sudo sed -i 's/^SCREEN_WIDTH=.*/SCREEN_WIDTH=1920/; s/^SCREEN_HEIGHT=.*/SCREEN_HEIGHT=1080/' \
+    /etc/default/browser-desktop
+sudo systemctl restart browser-desktop
+DISPLAY=:99 xdpyinfo | grep dimensions                 # dimensions: 1920x1080 pixels
+DISPLAY=:99 xwininfo -root -tree | grep '"chromium"'   # 最大化窗口尺寸
+```
+
+重启会关闭浏览器里已打开的页面；登录态存放在用户数据目录，不会丢失。
+`systemd/browser-desktop.env.example` 与 Docker 的 `.env.example` 仍保留模板默认值
+`1440x900`，本机实例在 `/etc/default/browser-desktop` 中覆盖。
 
 ### noVNC 版本与升级
 
