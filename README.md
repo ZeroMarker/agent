@@ -16,6 +16,7 @@
 ## 实践笔记（notes/）
 
 - [Agent 工具](notes/agent.md)：代码、办公、协作等 Agent 工具列表。
+- [Agent 语音输入落地方案](notes/agent-voice-input.md)：WorkBuddy × HOLLYLAND、Qoder × DJI Mic 案例，以及通用音频/控制架构、实施路线与验收指标。
 - [AIGC 分发渠道](notes/aigc.md)：AI 内容在 App、网站、视频、音乐、模型、图片、小说、有声书等渠道的分发平台整理。
 - [Codespace](notes/codespace.md)：GitHub Codespace 的查看、启动、连接、pi agent 授权与项目操作笔记。
 - [Tavily](notes/tavily.md)：AI Agent 的搜索/提取/爬取/研究 API 使用笔记。
