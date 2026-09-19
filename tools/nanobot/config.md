@@ -243,16 +243,16 @@ I am nanobot 🐈, a personal AI assistant.
 
 ## 常用命令速查
 
-### tk（TikTok 直播录制）
+### ffmpeg 工具
 
-`tk` 是定义在 `~/scripts/ffmpeg.sh` 的函数。
+`rip` 和 `h2v` 分别定义在 `~/ff/scripts/ffmpeg/linux/cut.sh` 与 `h2v.sh` 中。
 
 **正确用法**：
 ​```bash
-source ~/scripts/ffmpeg.sh && tk <tiktok_username>
+source "$HOME/ff/scripts/ffmpeg/linux/cut.sh"
+source "$HOME/ff/scripts/ffmpeg/linux/h2v.sh"
+rip <输入视频> <开始时间> <结束时间>
 ​```
-
-**注意**：不要用 find_files 搜索 tk 命令，不要扫描 /root/tiktok 目录（会卡死）。
 ```
 
 ### AGENTS.md 示例
