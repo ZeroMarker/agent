@@ -388,3 +388,6 @@ systemctl is-active dsh-web.service
 ```
 
 浏览器刷新页面后重新打开模型选择器。若需要检查发布通道，可运行 `npm view @deepseek-ai/dsh dist-tags`；本次核对时 `latest` 为 `0.1.5-rc.3`，`next` 为 `0.1.7-rc.2`。GitHub 新发布的预览版与 npm `latest` 不一定同步，见[上游发布记录](https://github.com/deepseek-ai/deepseek-harness/releases)。
+
+
+**后续核对：OpenCode Go 列表仍落后。** 上述重启只让已安装目录生效，不能证明它等于供应商实时列表。2026-09-26 逐项对比 `https://opencode.ai/zen/go/v1/models`，发现内置 27 个模型，实时接口 43 个；已用[补齐脚本](../cli-tools/dsh/README.md)新增缺失的 16 个并重启，验证模型选择器的 OpenCode Go ID 集合与实时接口一致，目录无加载错误。此修补位于 npm 安装目录，更新包后可能需要重新执行脚本。
