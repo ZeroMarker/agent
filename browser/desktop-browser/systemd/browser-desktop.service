@@ -20,7 +20,7 @@ Environment=CDP_LISTEN_ADDRESS=127.0.0.1
 Environment=ENABLE_CHROME_SANDBOX=false
 EnvironmentFile=-/etc/default/browser-desktop
 ExecStart=/usr/local/libexec/browser-desktop/start-browser.sh
-Restart=on-failure
+Restart=always
 RestartSec=3s
 TimeoutStopSec=15s
 KillMode=control-group
