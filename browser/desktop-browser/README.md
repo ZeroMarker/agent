@@ -92,6 +92,9 @@ noVNC 侧由 URL 参数 `resize=scale` 决定呈现方式：整幅远端画面�
 比例与窗口不一致时留黑边，**不会**改变远端分辨率。窗口小于 1280x720 时画面连同文字一起
 缩小；要看得更大，应调小 `SCREEN_WIDTH`/`SCREEN_HEIGHT`，而不是放大浏览器窗口。
 
+本机公网入口使用 `quality=3&compression=6`，在当前网络条件下比 noVNC 默认的
+`quality=6&compression=2` 更流畅；这些参数只影响 VNC 画面编码，不改变浏览器网页本身。
+
 远端自适应（`resize=remote`）在本机不可用：Xvfb 的 RANDR 上限等于启动时的 `-screen` 尺寸，
 且只暴露该尺寸一个模式，因此 x11vnc 协商 `ExtDesktopSize` 时无法改到窗口尺寸。用一个独立的
 `1440x900` 屏复现（不影响运行实例）：
@@ -244,7 +247,7 @@ cr.20070809.xyz {
     basicauth {
         admin <bcrypt-hash>
     }
-    redir / /vnc.html?autoconnect=1&resize=scale 302
+    redir / /vnc.html?autoconnect=1&resize=scale&quality=3&compression=6 302
     reverse_proxy 127.0.0.1:6080
 }
 ```
