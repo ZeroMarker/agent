@@ -27,7 +27,7 @@ Agent -> 127.0.0.1:9222 (CDP，仅本机)
 | noVNC | `127.0.0.1:6080` |
 | CDP | `127.0.0.1:9222` |
 | 浏览器程序 | `/opt/browser-desktop/bin/chromium` |
-| 虚拟屏 | `1920x1080x24`（Xvfb `:99`，16:9） |
+| 虚拟屏 | `1280x720x24`（Xvfb `:99`，16:9） |
 | 用户数据 | `/home/browser-desktop/.config/chromium` |
 | 进程日志 | `/var/log/browser-desktop/` |
 
@@ -85,11 +85,11 @@ Playwright 提供的 Chromium 构建；Debian 使用发行版原生 `chromium` �
 ### 显示比例与分辨率
 
 虚拟屏分辨率由 Xvfb 的 `-screen 0 WxHxD` 决定（即 `SCREEN_WIDTH`/`SCREEN_HEIGHT`/
-`SCREEN_DEPTH`），本机为 `1920x1080x24`（16:9）。Chromium 以 `--start-maximized` 铺满屏幕，
-窗口实际尺寸比屏幕矮约 22 像素（Fluxbox 工具栏），即 `1920x1058`。
+`SCREEN_DEPTH`），本机为 `1280x720x24`（16:9）。Chromium 以 `--start-maximized` 铺满屏幕，
+当前窗口尺寸为 `1280x673`，上方和下方留给窗口装饰与 Fluxbox 工具栏。
 
 noVNC 侧由 URL 参数 `resize=scale` 决定呈现方式：整幅远端画面等比缩放到浏览器窗口，
-比例与窗口不一致时留黑边，**不会**改变远端分辨率。窗口小于 1920x1080 时画面连同文字一起
+比例与窗口不一致时留黑边，**不会**改变远端分辨率。窗口小于 1280x720 时画面连同文字一起
 缩小；要看得更大，应调小 `SCREEN_WIDTH`/`SCREEN_HEIGHT`，而不是放大浏览器窗口。
 
 远端自适应（`resize=remote`）在本机不可用：Xvfb 的 RANDR 上限等于启动时的 `-screen` 尺寸，
@@ -109,10 +109,10 @@ DISPLAY=:98 xrandr --fb 1280x720    # 帧缓冲会缩到 1280x720，但输出仍
 修改分辨率的步骤：
 
 ```bash
-sudo sed -i 's/^SCREEN_WIDTH=.*/SCREEN_WIDTH=1920/; s/^SCREEN_HEIGHT=.*/SCREEN_HEIGHT=1080/' \
+sudo sed -i 's/^SCREEN_WIDTH=.*/SCREEN_WIDTH=1280/; s/^SCREEN_HEIGHT=.*/SCREEN_HEIGHT=720/' \
     /etc/default/browser-desktop
 sudo systemctl restart browser-desktop
-DISPLAY=:99 xdpyinfo | grep dimensions                 # dimensions: 1920x1080 pixels
+DISPLAY=:99 xdpyinfo | grep dimensions                 # dimensions: 1280x720 pixels
 DISPLAY=:99 xwininfo -root -tree | grep '"chromium"'   # 最大化窗口尺寸
 ```
 
