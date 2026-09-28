@@ -99,7 +99,7 @@ fi
 x11vnc \
     -display "$DISPLAY" \
     "${x11vnc_auth_args[@]}" \
-    -forever -shared -localhost -rfbport 5900 \
+    -forever -shared -localhost -rfbport 5900 -nonap \
     >"${log_dir}/x11vnc.log" 2>&1 &
 pids+=("$!")
 
