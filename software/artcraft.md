@@ -17,6 +17,8 @@ ArtCraft 是面向艺术家、设计师与影视创作者的 AI 图像和视频�
 | FAQ 与操作指南 | https://getartcraft.com/faq |
 | 价格与积分 | https://getartcraft.com/pricing |
 
+组织内其他项目见 [storytold / ArtCraft 项目导航](storytold.md)，包含 Craft 创作与办公应用、服务端、共享资源及实验仓库。
+
 ## 核心功能
 
 | 功能 | 用途 |
