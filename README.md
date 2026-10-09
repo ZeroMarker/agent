@@ -65,6 +65,7 @@
 - [软件工具](software/blender.md)：具体软件的 Agent 化、自动化或创作流程笔记。
 - [ArtCraft](software/artcraft.md)：AI 图像与视频创作工作台；2D/3D 构图、安装入口、生成流程、模型接入、费用与许可证说明。
 - [storytold / ArtCraft 项目导航](software/storytold.md)：41 个公开仓库的分类索引；Craft 创作与办公应用、服务端、Agent/MCP 入口、实验项目与第三方 fork。
+- [FilmCraft 网页版](software/filmcraft.md)：官方 WebAssembly 发布包的 Caddy 部署、访问入口、验证结果与更新方式。
 - [rclone](rclone/README.md)：云存储命令行管理、PikPak 挂载（systemd 服务）与常用操作。
 - [工作流编排](workflow/index.md)：低代码、自动化编排和 Agent workflow 平台。
 

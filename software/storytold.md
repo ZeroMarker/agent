@@ -44,6 +44,8 @@
 | [SoundCraft](https://github.com/storytold/soundcraft) | 音频录制、编辑与混音 | Pro Tools |
 | [CADCraft](https://github.com/storytold/cadcraft) | CAD 绘图与计算机辅助设计 | AutoCAD |
 
+本机已通过 Caddy 部署 FilmCraft 网页版，访问地址与运维记录见 [FilmCraft 部署笔记](filmcraft.md)。
+
 ### 成熟度与兼容性
 
 - **PhotoCraft**：README 明确标注 early alpha，暂不能替代日常专业 Photoshop 工作；生成式 AI、部分工具、排版深度和插件兼容性仍有缺口。[状态说明](https://github.com/storytold/photocraft#get-started)
