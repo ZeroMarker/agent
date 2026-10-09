@@ -151,6 +151,83 @@ x11vnc 和 Xvfb 分别占用约单核的 3.4% 和 2.4% CPU。
 x11vnc 日志中的 `client latency` 会受其画面更新调度影响，不能单独用来判断
 公网链路延迟；若以后仍卡顿，应在有问题的操作发生时分别测网页响应和客户端链路。
 
+### 只看到 Ubuntu 壁纸：窗口折叠排查（2026-10-09）
+
+本次用户反馈桌面只剩 Ubuntu 标志，怀疑浏览器崩溃。检查时 Chromium、Fluxbox、
+Xvfb 和 VNC 均仍在运行，CDP 正常响应。Chromium 窗口的 `_NET_WM_STATE` 包含
+`_NET_WM_STATE_SHADED`，外层窗口高度只有 21 像素：Fluxbox 把窗口折叠到标题栏，
+因此露出了桌面壁纸。移除 SHADED 状态后浏览器立即恢复，原有标签页和表单均保留，
+没有重启服务。
+
+本机 `/home/browser-desktop/.fluxbox/keys` 中有以下绑定：
+
+```text
+OnTitlebar Double Mouse1 :Shade
+```
+
+即双击窗口管理器标题栏会切换折叠状态；再次双击同一标题栏即可展开。
+误双击是可能的触发原因，但现有日志不记录具体鼠标点击或 Shade 动作，无法追溯
+本次究竟由哪次操作触发。VNC 里的 PointerEvent 统计只有事件数量，不能据此认定发生了双击。
+
+遇到相同现象时，先检查服务、CDP 和窗口状态，避免直接重启而中断当前页面：
+
+```bash
+systemctl show browser-desktop \
+    -p ActiveState -p SubState -p ActiveEnterTimestamp -p NRestarts -p Result
+curl -fsS --max-time 5 http://127.0.0.1:9222/json/version
+
+# 服务启用了 PrivateTmp；进入其挂载命名空间，才能访问对应的 X11 socket。
+desktop_pid=$(systemctl show browser-desktop -p MainPID --value)
+sudo nsenter -t "$desktop_pid" -m -- env DISPLAY=:99 xwininfo -root -tree
+# 从上一步找到 Chromium 页面窗口的 ID，填入下面的变量。
+window_id='替换为实际窗口 ID，如 0xe00003'
+sudo nsenter -t "$desktop_pid" -m -- env DISPLAY=:99 \
+    xprop -id "$window_id" _NET_WM_STATE WM_STATE
+```
+
+若状态包含 `_NET_WM_STATE_SHADED`，通过 noVNC 双击顶部 Fluxbox 标题栏展开，
+然后重新检查状态和画面。上述 `:99` 对应本机实例；修改过 `DISPLAY_NUMBER` 时需同步替换。
+
+本次日志分析（时间均为 UTC）：
+
+| 证据 | 判断与限制 |
+|---|---|
+| 服务自 10 月 8 日 06:35:23 运行，`NRestarts=0` | 本轮运行期间没有自动重启 |
+| 10 月 8 日 06:35:22 先出现 systemd `Stopping`，随后退出码 143 并重新启动 | 前一次退出发生在停止服务过程中，与次日窗口折叠事件无关；不能据此判断为自发崩溃 |
+| 内核日志未发现 OOM、进程被杀或 segfault；Chromium 的 pending/completed 崩溃报告目录为空 | 没有找到记录在案的崩溃证据，不代表日志能覆盖所有异常 |
+| 10 月 9 日 02:33:13、02:33:50 VNC 连接成功；中间在 02:33:44 断开 | 客户端发生重连，服务仍能完成协议协商；日志未说明断开原因 |
+| 01:10、01:15 的 VNC 延迟估计约 44–62 ms；02:33 约 620–629 ms | 后两次连接更新时序较慢；不能单凭该值定位公网链路，也不能解释 SHADED 状态 |
+| Chromium 在 01:28–02:32 出现桌面 portal 请求取消/结束消息 | 没有伴随浏览器退出；日志不足以确定具体是哪次桌面交互 |
+| 启动时出现 GPU/EGL、PipeWire、缺失桌面服务、Fluxbox 配置回退及键盘符号警告 | 这些消息早于事件，服务随后正常运行；未发现它们导致窗口折叠的证据 |
+| x11vnc 忽略部分客户端 encoding，同时成功选用 tight 并发送 1920×1080 尺寸 | 本次这些消息没有阻止连接和画面传输 |
+
+### 日志位置与取证限制
+
+systemd 部署的组件日志位于 `/var/log/browser-desktop/`，读取需要相应权限：
+
+| 日志 | 内容 |
+|---|---|
+| `chromium.log` | Chromium 标准输出/错误、CDP 启动信息及桌面集成消息 |
+| `fluxbox.log` | 窗口管理器启动及配置错误；不记录逐次窗口操作 |
+| `x11vnc.log` | VNC 连接/断开、协议与编码协商、传输和输入事件数量、延迟估计 |
+| `novnc.log` | websockify 启动、WebSocket 连接及代理错误 |
+| `journalctl -u browser-desktop` | systemd 服务生命周期、启动脚本输出及 Xvfb 消息 |
+
+```bash
+sudo journalctl -u browser-desktop --since '2026-10-09 01:00:00' --no-pager
+sudo tail -n 100 /var/log/browser-desktop/chromium.log
+sudo tail -n 100 /var/log/browser-desktop/fluxbox.log
+sudo tail -n 100 /var/log/browser-desktop/x11vnc.log
+sudo tail -n 100 /var/log/browser-desktop/novnc.log
+sudo journalctl -k --since '2026-10-09 01:00:00' --no-pager \
+    | rg -i 'oom|out of memory|killed process|segfault'
+```
+
+当前启动脚本使用 `>` 写入上述四个组件日志，**每次服务启动会覆盖旧内容**，
+且没有配置组件日志轮转。需要追查时应在重启前保存日志；systemd journal 的历史保留
+则取决于主机 journald 配置。Chromium 和 Fluxbox 的部分消息没有完整时间戳，
+不能把它们精确对应到每一次用户操作。
+
 ### noVNC 版本与升级
 
 本项目不安装发行版的 `novnc` 包。它会拉取固定的上游 noVNC 1.7.0 源码归档、校验
