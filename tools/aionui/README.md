@@ -6,13 +6,9 @@
 
 ## 登录和认证
 
-Caddy 弹窗和 AionUi 页面均使用用户名 `admin`，密码相同，是此站点独立生成的密码。通过 SSH 在服务器查看：
+Caddy 弹窗和 AionUi 页面均使用用户名 `admin`，沿用其他站点已有的 Caddy 密码。已将原有 bcrypt 哈希同步到该站点 Caddy 配置和 AionUi 数据库，没有另设密码。此前部署时生成的独立密码已作废。
 
-```bash
-cat /home/ubuntu/.local/state/aionui/login.txt
-```
-
-凭据文件权限 `600`，未提交到仓库。修改 AionUi 密码后，Caddy 密码不会自动同步，需要单独更新其 bcrypt 哈希。
+修改 AionUi 密码后，Caddy 密码不会自动同步，需要单独更新其 bcrypt 哈希。
 
 **本版本必须保留 Caddy 认证。** 实测独立启动器以 `aioncore --local` 运行：`/api/auth/user` 要求登录，但 `/api/conversations` 在无 Cookie 时仍返回 `200`。因此不能只依赖页面登录；Caddy 对全部页面、API 和 WebSocket 实施 Basic Auth。上游文档与本版本行为存在差异。
 
@@ -73,7 +69,7 @@ sudo caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
 
 ## 运维
 
-本次验证：前端生产构建成功；公网无凭据页面和 API 返回 `401`，带 Caddy 凭据返回 `200`；浏览器完成页面登录并进入 `#/guid`；登录 Cookie 的 WebSocket 连接成功；服务重启后原密码仍有效。Caddy 验证通过，HTTPS 证书已签发。
+初次部署验证：前端生产构建成功，浏览器完成页面登录并进入 `#/guid`，登录 Cookie 的 WebSocket 连接成功，服务重启后凭据仍有效。随后纠正密码配置：Caddy 与 AionUi 均复用已有 admin 哈希，旧的独立密码作废；公网无凭据页面和 API 返回 `401`。纠正后未获取已有密码明文，验证范围为哈希一致、旧密码被拒绝和服务正常启动。Caddy 验证通过，HTTPS 证书已签发。
 
 ```bash
 systemctl status aionui-webui --no-pager

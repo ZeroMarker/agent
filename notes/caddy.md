@@ -34,7 +34,7 @@
 | `ibkr.20070809.xyz` | 127.0.0.1:8081 | 否（免密） |
 | `film.20070809.xyz` | 静态文件 `/srv/filmcraft/current` | 是 |
 | `cli.20070809.xyz` | 127.0.0.1:6767（Paseo Web UI） | 否；API / WebSocket 使用 Paseo 密码 |
-| `aion.20070809.xyz` | 127.0.0.1:25808（AionUi WebUI） | 是；站点独立 admin 密码 |
+| `aion.20070809.xyz` | 127.0.0.1:25808（AionUi WebUI） | 是；沿用已有 admin 密码 |
 
 FilmCraft 的配置片段位于 `/etc/caddy/film.caddy`，由主配置导入；官方 Web 包直接托管，无需反向代理或额外应用服务。版本、校验值和验证结果见 [FilmCraft 网页版部署笔记](../software/filmcraft.md)。
 
