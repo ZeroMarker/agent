@@ -19,7 +19,7 @@
 | DNS | 复用现有 Cloudflare 代理的 `*.20070809.xyz` A 记录 |
 | Node.js | `/usr/local/bin/node`，v22.23.2，Linux ARM64 |
 
-访问首页时，先使用已有 Caddy `admin` 账号和密码。首次进入后创建 CloudCLI 自身的账号；这是单用户系统，已有账号后禁止再次注册。部署没有代建账号，数据库检查返回 `needsSetup=true`。CloudCLI 的账号、JWT 密钥、CLI 凭据与会话数据不提交到仓库。
+访问首页时，先使用已有 Caddy `admin` 账号和密码。首次进入后创建 CloudCLI 自身的账号；这是单用户系统，已有账号后禁止再次注册。初次部署没有代建账号，当时数据库检查返回 `needsSetup=true`；后续已配置账号时直接登录。CloudCLI 的账号、JWT 密钥、CLI 凭据与会话数据不提交到仓库。
 
 服务使用现有用户的 HOME 和 PATH，可以读取该用户的项目与 CLI 登录状态；它不是隔离沙箱。已安装的 Claude/Codex CLI 可被找到，但本次没有发送模型请求，也没有验证每个提供方的登录与聊天。登录后先选择提供方、项目和会话，确认凭据可用，再开始工作。
 
@@ -79,6 +79,24 @@ sudo caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
 因此 Caddy 登录保护页面入口和注册，CloudCLI 的 JWT 保护项目、文件、终端等操作。不要为了省去登录而启用上游的平台模式绕过认证。
 
 ## 验证与运维
+
+### 更新 Codex 模型列表
+
+CloudCLI 1.37.4 的模型列表由包内静态目录和数据库中的自定义模型合并，升级到当前 npm 最新版仍不保证目录包含刚发布的模型。2026-10-10 核对发现内置 Codex 列表缺少 `gpt-6.1-sol`，但本机 Codex 的账号模型缓存已经提供它；[OpenAI 官方模型文档](https://learn.chatgpt.com/docs/models) 也确认该模型。
+
+已通过应用自定义模型服务补入 **GPT-6.1-Sol**，保留其 `low / medium / high / xhigh / max / ultra` 推理选项、默认 `low`。登录后的本机与公网 `GET /api/providers/codex/models` 均返回 200，且包含新模型。刷新网页后在 Codex 模型选择器中选择它；本次没有修改会话的已选模型或应用默认模型，也没有发送推理请求。
+
+[同步脚本](sync-codex-models.mjs) 读取本机 `~/.codex/models_cache.json` 中可见模型，使用 CloudCLI 的自定义模型服务添加缺失项，无需修改 npm 包。运行前自动备份 SQLite 数据库，备份权限为 600；重复执行不会重复添加。以后更新列表可先启动 Codex，让其刷新账号目录，再运行：
+
+```bash
+codex
+# 在交互界面查看 /model，退出后执行：
+node tools/claudecodeui/sync-codex-models.mjs
+```
+
+缓存超过 24 小时或结构不符合要求时脚本拒绝更新。它仅补入可见的缺失模型，不删除上游内置旧条目或用户的自定义条目，也不修改默认选择；模型能否实际运行仍取决于当前账号和 CLI 支持。此同步为手动操作，仅针对 Codex；Claude/Cursor/OpenCode 的目录仍由上游管理。新增记录持久化在应用数据库中，服务重启与 npm 包更新不会删除它。
+
+### 日常检查
 
 ```bash
 systemctl is-enabled cloudcli
