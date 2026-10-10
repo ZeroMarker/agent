@@ -417,3 +417,8 @@ dsh --version
 升级前的 `~/.dsh` 备份保存在本机 `~/.local/state/dsh-backups/20261010/dsh-config.tar.gz`（仅用户可读，未入库）。未手动修改凭证、会话或默认模型配置。重启生成新的访问 token，需要时按本文前面的命令从日志读取，不将 token 写入仓库。
 
 本次同时预览 OpenCode Go 补齐脚本；实时目录出现未审查模板的新模型 `claude-haiku-5-5`，脚本按设计中止，未写入安装包。当前会话目录仅报告 DeepSeek 提供方，OpenCode Go 补齐工具仍需单独维护映射后才能用于新的实时目录。
+
+
+### 2026-10-10：为 dsh Web 启用 OpenCode Go
+
+在 Web profile 用户层为 `llm-pi-ai` 配置 `providers.opencode-go`，复用本机现有的 `OPENCODE_GO_API_KEY` 凭证引用，具体配置见 [dsh 文档](../cli-tools/dsh/README.md#web-profile-启用-opencode-go2026-10-10)。重启后服务 `active/running`、自动重启计数为 0；模型目录包含 DeepSeek 官方与 OpenCode Go 两个可路由提供方，Go 内置 30 个模型，`failures` 为空。默认模型仍为官方 `deepseek-flash`。Web profile 原始 patch 已备份到本机 `~/.local/state/dsh-backups/20261010/web-before-opencode-go.patch.yml`。重启后的新 token 需从日志读取。
