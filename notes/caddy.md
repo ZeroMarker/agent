@@ -51,7 +51,7 @@ AionUi 的片段位于 `/etc/caddy/aionui.caddy`，由 `aionui-webui.service` �
 - `dsh.20070809.xyz` 承载 dsh web：它是**绝对根路径 SPA**（`/assets` `/plugins` `/api`/WebSocket 都以 `/` 为基准），无法与 `20070809.xyz` 根路径（被 SysMon 占用 `/api`·`/manifest`）共存于同一主机，故用独立子域名。
 - `cr.20070809.xyz` 反代 Chromium 的 noVNC 服务；访问根路径会跳转到自动连接、按比例缩放的 `/vnc.html`，WebSocket 由 Caddy 自动透传。公网入口使用共享 Basic Auth，VNC 自身密码已关闭；noVNC 端口仅监听回环地址，不能直接暴露公网。
 
-**dsh web 注意**：跑在 systemd `dsh-web.service` 下（`dsh web --no-open --host 127.0.0.1 --port 3080 --trusted-host dsh.20070809.xyz`，开机自启，崩溃自动重启），版本为 `@deepseek-ai/dsh@0.1.5-rc.3`（全局 npm 装于 pi-node 的 node 下；2026-09-26 重启服务，使已安装版本及模型目录生效）。opencode 相关已移除：`oc.20070809.xyz` 站点、`opencode-usage.service`（`/opt/opencode-usage`）、`~/.dsh/profiles/web` 对 `@dsh-ltctfer/dsh-opencode-go-usage` 的依赖/`cordis.patch.yml` 插入项及 `/tmp/dsh-opencode-go-usage` 源码均已删除——该插件（上游最新 0.1.1）引用了已被删除的 `installSettingsSection`，在新版下启动即 crash-loop（`SyntaxError ... does not provide an export named 'installSettingsSection'`），正是此前钉在旧版的原因；移除后升级一次启动成功。公网访问有**两道门**：① 服务端 `/api` browser-trust fence 认 Host，`--trusted-host` 已放行公网域名（缺它时所有 `/api` 走公网都是 403）；② 设置/提供方目录页还有**客户端门**——前端按浏览器地址栏算 `isLoopback`（仅 `localhost`/`127/8`/`::1` 算回环），公网域名打开时设置 mirror 强制 `unavailable`，报 `settings are unavailable in this browser`，服务端改不了。结论：聊天主界面走公网子域名；**改模型/供应商/凭证必须用回环地址开页面**——本机直接开 `http://127.0.0.1:3080`，远程则 `ssh -L 3080:127.0.0.1:3080 ubuntu@<本机IP>` 后在自己电脑开 `http://127.0.0.1:3080`。
+**dsh web 注意**：跑在 systemd `dsh-web.service` 下（`dsh web --no-open --host 127.0.0.1 --port 3080 --trusted-host dsh.20070809.xyz`，开机自启，崩溃自动重启），版本为 `@deepseek-ai/dsh@0.2.0-rc.2`（全局 npm 装于 pi-node 的 node 下；2026-10-10 从 `0.1.7-rc.2` 升级 npm `latest` 并重启服务，验证认证后 Web UI 及模型目录接口正常）。opencode 相关已移除：`oc.20070809.xyz` 站点、`opencode-usage.service`（`/opt/opencode-usage`）、`~/.dsh/profiles/web` 对 `@dsh-ltctfer/dsh-opencode-go-usage` 的依赖/`cordis.patch.yml` 插入项及 `/tmp/dsh-opencode-go-usage` 源码均已删除——该插件（上游最新 0.1.1）引用了已被删除的 `installSettingsSection`，在新版下启动即 crash-loop（`SyntaxError ... does not provide an export named 'installSettingsSection'`），正是此前钉在旧版的原因；移除后升级一次启动成功。公网访问有**两道门**：① 服务端 `/api` browser-trust fence 认 Host，`--trusted-host` 已放行公网域名（缺它时所有 `/api` 走公网都是 403）；② 设置/提供方目录页还有**客户端门**——前端按浏览器地址栏算 `isLoopback`（仅 `localhost`/`127/8`/`::1` 算回环），公网域名打开时设置 mirror 强制 `unavailable`，报 `settings are unavailable in this browser`，服务端改不了。结论：聊天主界面走公网子域名；**改模型/供应商/凭证必须用回环地址开页面**——本机直接开 `http://127.0.0.1:3080`，远程则 `ssh -L 3080:127.0.0.1:3080 ubuntu@<本机IP>` 后在自己电脑开 `http://127.0.0.1:3080`。
 
 **访问 token**：0.1.2-rc.1 起 `dsh web` 启动时生成一次性访问 token，只打印到日志（`dsh web: http://127.0.0.1:3080/?token=...`）；不带 token 访问回环地址一律 401。取当前值：
 
@@ -400,3 +400,20 @@ systemctl is-active dsh-web.service
 
 
 **后续核对：OpenCode Go 列表仍落后。** 上述重启只让已安装目录生效，不能证明它等于供应商实时列表。2026-09-26 逐项对比 `https://opencode.ai/zen/go/v1/models`，发现内置 27 个模型，实时接口 43 个；已用[补齐脚本](../cli-tools/dsh/README.md)新增缺失的 16 个并重启，验证模型选择器的 OpenCode Go ID 集合与实时接口一致，目录无加载错误。此修补位于 npm 安装目录，更新包后可能需要重新执行脚本。
+
+
+### 2026-10-10：DeepSeek Harness 升级至 0.2.0-rc.2
+
+将本机全局 `@deepseek-ai/dsh` 从 `0.1.7-rc.2` 升级至 npm `latest`（当日为 `0.2.0-rc.2`），随后重启 `dsh-web.service`。当日 `next` 同为 `0.2.0-rc.2`，`alpha` 为 `0.2.1-alpha.2`；本次使用 `latest` 通道。参考[上游发布记录](https://github.com/deepseek-ai/deepseek-harness/releases)。
+
+```bash
+npm install -g @deepseek-ai/dsh@0.2.0-rc.2
+sudo systemctl restart dsh-web.service
+dsh --version
+```
+
+验证：服务 `active/running`、自动重启计数为 0；使用当前启动 token 换取 cookie 后，Web UI 返回 HTTP 200。`POST /api/session/modelCatalog` 返回 `result.ok: true`，`failures: []`，当前可路由提供方为 `deepseek-official`，包含 `deepseek-flash` 与 `deepseek-v4-pro`，目录报告默认模型为 `deepseek-flash`。未进行付费推理调用。
+
+升级前的 `~/.dsh` 备份保存在本机 `~/.local/state/dsh-backups/20261010/dsh-config.tar.gz`（仅用户可读，未入库）。未手动修改凭证、会话或默认模型配置。重启生成新的访问 token，需要时按本文前面的命令从日志读取，不将 token 写入仓库。
+
+本次同时预览 OpenCode Go 补齐脚本；实时目录出现未审查模板的新模型 `claude-haiku-5-5`，脚本按设计中止，未写入安装包。当前会话目录仅报告 DeepSeek 提供方，OpenCode Go 补齐工具仍需单独维护映射后才能用于新的实时目录。

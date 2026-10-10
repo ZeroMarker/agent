@@ -1,8 +1,10 @@
 # dsh：补齐 OpenCode Go 模型目录
 
-本机 dsh `0.1.5-rc.3` 的 OpenCode Go 目录来自 `@earendil-works/pi-ai` 内置 JSON，不会实时同步 OpenCode Go 的模型接口。重启只能重新加载磁盘上的目录。
+此前 dsh `0.1.5-rc.3` 的 OpenCode Go 目录来自 `@earendil-works/pi-ai` 内置 JSON，不会实时同步 OpenCode Go 的模型接口。重启只能重新加载磁盘上的目录。
 
 2026-09-26 对比发现：实时接口 43 个模型，安装包内置 27 个。执行补齐脚本后，`session/modelCatalog` 中 `opencode-go` 的模型 ID 集合与实时接口完全一致，且 `failures` 为空。新增包括 GPT-6 Luna、Grok 4.7、MiMo V2.6 Pro / Flash、DeepSeek V4.1 Flash。此验证覆盖目录加载与选择器，不代表逐个模型的推理调用均已测试。
+
+> 2026-10-10：本机已升级至 `0.2.0-rc.2`。本次预览遇到未审查的新模型 `claude-haiku-5-5`，脚本中止且未写入；当前会话的可路由目录仅为 DeepSeek。以下 2026-09-26 的补齐结果是历史记录，不能作为当前 OpenCode Go 目录已完整的证明。升级与验证见 [Caddy 部署笔记](../../notes/caddy.md#2026-10-10deepseek-harness-升级至-020-rc2)。
 
 ## 使用
 
