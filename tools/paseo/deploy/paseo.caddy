@@ -1,0 +1,13 @@
+cli.20070809.xyz {
+	encode zstd gzip
+	# 清理此前 CloudCLI 注册的 service worker，避免旧页面继续从缓存加载。
+	handle /sw.js {
+		header Content-Type application/javascript
+		header Cache-Control no-store
+		respond "self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())await caches.delete(key);await self.registration.unregister();for(const client of await self.clients.matchAll({type:'window'}))await client.navigate(client.url);})()));" 200
+	}
+	# Paseo 自身使用密码认证 API / WebSocket，静态登录页公开。
+	handle {
+		reverse_proxy 127.0.0.1:6767
+	}
+}

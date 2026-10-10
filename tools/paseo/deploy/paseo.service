@@ -1,0 +1,22 @@
+[Unit]
+Description=Paseo daemon and bundled Web UI
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/agent
+Environment=HOME=/home/ubuntu
+Environment=PASEO_HOME=/home/ubuntu/.paseo
+Environment=PATH=/home/ubuntu/.local/bin:/home/ubuntu/.local/share/pi-node/node-v22.23.2-linux-arm64/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/local/bin/node --disable-warning=DEP0040 /home/ubuntu/.local/share/pi-node/node-v22.23.2-linux-arm64/lib/node_modules/@getpaseo/cli/bin/paseo daemon run
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillMode=control-group
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

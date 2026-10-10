@@ -1,5 +1,7 @@
 # CloudCLI / Claude Code UI
 
+> 2026-10-10 已由 [Paseo Web UI](../paseo/web-ui.md) 替代。`cloudcli.service` 已停止并禁用，`cli.20070809.xyz` 当前指向 Paseo；下文保留历史部署和回退资料。
+
 [CloudCLI](https://github.com/siteboon/claudecodeui) 是 Claude Code、Codex、Cursor CLI 与 OpenCode 的桌面/手机 Web 界面，提供项目与会话管理、聊天、文件编辑、Git 操作、终端和插件。适合从手机继续服务器上的编码会话。上游采用 AGPL-3.0-or-later；官方说明见 [README](https://github.com/siteboon/claudecodeui#readme)。
 
 ## 本机部署

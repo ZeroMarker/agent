@@ -33,17 +33,17 @@
 | `cr.20070809.xyz` | 127.0.0.1:6080（Chromium noVNC） | 是 |
 | `ibkr.20070809.xyz` | 127.0.0.1:8081 | 否（免密） |
 | `film.20070809.xyz` | 静态文件 `/srv/filmcraft/current` | 是 |
-| `cli.20070809.xyz` | 127.0.0.1:3001（CloudCLI） | 页面与注册；API 使用应用 JWT |
+| `cli.20070809.xyz` | 127.0.0.1:6767（Paseo Web UI） | 否；API / WebSocket 使用 Paseo 密码 |
 
 FilmCraft 的配置片段位于 `/etc/caddy/film.caddy`，由主配置导入；官方 Web 包直接托管，无需反向代理或额外应用服务。版本、校验值和验证结果见 [FilmCraft 网页版部署笔记](../software/filmcraft.md)。
 
-CloudCLI 配置片段为 `/etc/caddy/cloudcli.caddy`，后端由 `cloudcli.service` 管理。应用 API 使用 Bearer token，不能对全部路由叠加 Basic Auth；具体分流配置、安装与验证见 [CloudCLI 部署文档](../tools/claudecodeui/README.md)。
+2026-10-10 已用 Paseo Web UI 替代 CloudCLI：配置片段为 `/etc/caddy/paseo.caddy`，后端由 `paseo.service` 管理。页面公开加载，API / WebSocket 使用 Paseo 原生密码认证，复用已有 Caddy 密码的哈希；不叠加 Basic Auth。安装与验证见 [Paseo Web UI 部署文档](../tools/paseo/web-ui.md)。
 
 结构说明：
 
 - 每个应用一个独立子域名，在自己根路径运行，站点块里直接 `reverse_proxy`，不再使用旧的路径前缀代理。`cr` 仅额外把根路径重定向到 noVNC 入口页。
 - 站名即 `20070809.xyz` 的子域，需在 Cloudflare 为每个子域加 A/AAAA 指向本机，否则 Caddy 无法签发证书。
-- `encode gzip` 压缩响应；`basicauth { admin <hash> }` 为每个子站点套同一套账号；`ibkr` 免密（继承原 `/public` 豁免）；CloudCLI 的 API / WebSocket 则使用应用 JWT，页面与注册仍需 Basic Auth。
+- `encode gzip` 压缩响应；`basicauth { admin <hash> }` 为多数子站点套同一套账号；`ibkr` 免密（继承原 `/public` 豁免）；Paseo 使用自身密码认证 API / WebSocket，静态登录页公开。
 - 旧路径代理（`/tiktok` `/douyin` `/edit` `/netdata` `/212` `/public/ibkr`）已全部移除，改为子域名；旧路径访问已失效。
 - `dsh.20070809.xyz` 承载 dsh web：它是**绝对根路径 SPA**（`/assets` `/plugins` `/api`/WebSocket 都以 `/` 为基准），无法与 `20070809.xyz` 根路径（被 SysMon 占用 `/api`·`/manifest`）共存于同一主机，故用独立子域名。
 - `cr.20070809.xyz` 反代 Chromium 的 noVNC 服务；访问根路径会跳转到自动连接、按比例缩放的 `/vnc.html`，WebSocket 由 Caddy 自动透传。公网入口使用共享 Basic Auth，VNC 自身密码已关闭；noVNC 端口仅监听回环地址，不能直接暴露公网。
