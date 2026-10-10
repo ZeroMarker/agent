@@ -34,10 +34,13 @@
 | `ibkr.20070809.xyz` | 127.0.0.1:8081 | 否（免密） |
 | `film.20070809.xyz` | 静态文件 `/srv/filmcraft/current` | 是 |
 | `cli.20070809.xyz` | 127.0.0.1:6767（Paseo Web UI） | 否；API / WebSocket 使用 Paseo 密码 |
+| `aion.20070809.xyz` | 127.0.0.1:25808（AionUi WebUI） | 是；站点独立 admin 密码 |
 
 FilmCraft 的配置片段位于 `/etc/caddy/film.caddy`，由主配置导入；官方 Web 包直接托管，无需反向代理或额外应用服务。版本、校验值和验证结果见 [FilmCraft 网页版部署笔记](../software/filmcraft.md)。
 
 2026-10-10 已用 Paseo Web UI 替代 CloudCLI：配置片段为 `/etc/caddy/paseo.caddy`，后端由 `paseo.service` 管理。页面公开加载，API / WebSocket 使用 Paseo 原生密码认证，复用已有 Caddy 密码的哈希；不叠加 Basic Auth。安装与验证见 [Paseo Web UI 部署文档](../tools/paseo/web-ui.md)。
+
+AionUi 的片段位于 `/etc/caddy/aionui.caddy`，由 `aionui-webui.service` 管理独立 WebUI。实测此版本的部分 API 在本地模式下免认证，因此 Caddy 必须保护整个站点；部署、凭据位置与验证见 [AionUi 文档](../tools/aionui/README.md)。
 
 结构说明：
 

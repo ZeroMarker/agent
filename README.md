@@ -46,6 +46,7 @@
 
 ## 工具使用指南（tools/）
 
+- [AionUi](tools/aionui/README.md)：独立 WebUI，使用 systemd + Caddy 部署于 `aion.20070809.xyz`，含登录、构建与认证行为说明。
 - [CLI-Anything](tools/cli-anything/)：HKUDS 出品的「让所有软件 Agent 原生」框架——为任意有源码的软件自动生成 CLI harness，配套 CLI-Hub 注册表。
 - [Codex CLI](tools/codex/)：OpenAI 轻量级编码代理，终端本地运行。
 - [Paseo](tools/paseo/README.md)：远程管理编码代理；[本机 Web UI](tools/paseo/web-ui.md) 使用 systemd + Caddy 部署于 `cli.20070809.xyz`，含安装配对、模型列表与 Codex YOLO / Full Access 排障。

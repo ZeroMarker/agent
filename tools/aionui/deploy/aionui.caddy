@@ -1,0 +1,7 @@
+aion.20070809.xyz {
+	encode zstd gzip
+	basic_auth {
+		admin REPLACE_WITH_AIONUI_ADMIN_BCRYPT_HASH
+	}
+	reverse_proxy 127.0.0.1:25808
+}
