@@ -49,7 +49,6 @@
 - [CLI-Anything](tools/cli-anything/)：HKUDS 出品的「让所有软件 Agent 原生」框架——为任意有源码的软件自动生成 CLI harness，配套 CLI-Hub 注册表。
 - [Codex CLI](tools/codex/)：OpenAI 轻量级编码代理，终端本地运行。
 - [Paseo](tools/paseo/README.md)：远程管理编码代理；[本机 Web UI](tools/paseo/web-ui.md) 使用 systemd + Caddy 部署于 `cli.20070809.xyz`，含安装配对、模型列表与 Codex YOLO / Full Access 排障。
-- [CloudCLI / Claude Code UI（历史部署）](tools/claudecodeui/README.md)：已由 Paseo Web UI 替代，保留原配置与回退说明。
 - [MiMo Code](tools/mimocode/)：面向开发者的 AI 编码代理文档。
 - [Nanobot](tools/nanobot/)：超轻量级个人 AI 助手，支持 QQ/Telegram/Discord/WeChat/Slack 多频道；本机已部署 v0.3.0（QQ 机器人已接入，ChatGPT 账号 OAuth Codex，systemd 网关 `:18791`）。
 - [ZeroClaw](tools/zeroclaw/)：基于 Rust 的快速 AI 助手，多频道、多模型、自主运行。

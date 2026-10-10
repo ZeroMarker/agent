@@ -19,7 +19,9 @@
 
 打开页面后，在 **Paseo 自己的登录界面**输入原 Caddy `admin` 账号使用的密码，无需用户名。配置复用了原 Caddy 的 bcrypt 哈希，没有记录明文。页面静态资源可公开加载，代理数据和操作由 Paseo 密码认证保护；Caddy 不再叠加 Basic Auth，以免与应用 Bearer 头冲突。
 
-原 Paseo HOME、relay、项目、插件和终端启动配置继续使用；旧的手动 daemon 已停止，统一由 systemd 管理。CloudCLI 的 `cloudcli.service` 已停止并禁用开机启动；安装包、数据库与旧 Caddy 片段保留用于回退，但旧片段不再被导入。CloudCLI 的账号与会话不会自动迁移到 Paseo。
+0.11.2 的首次自动探测不带密码，可能回到 **Connect** 页面。此时选择直连：Host 为 `cli.20070809.xyz`、端口 **443**、启用 TLS，并输入相同密码；浏览器随后保存连接。`6767` 是服务器回环端口，不用于公网连接。
+
+原 Paseo HOME、relay、项目、插件和终端启动配置继续使用；旧的手动 daemon 已停止，统一由 systemd 管理。旧 CloudCLI 的安装包、systemd 单元、Caddy 片段和仓库部署资料已移除；账号数据库单独保存在 `~/.local/state/cloudcli-removed-<时间戳>/` 私有归档中，不再供服务使用。旧账号与会话不会自动迁移到 Paseo。
 
 Caddy 还为旧 `/sw.js` 提供一次迁移用的 service worker：激活时清空该域缓存、注销旧 worker 并重新加载页面。若浏览器仍显示旧 CloudCLI，刷新页面；必要时清除该站点数据再访问。
 
@@ -125,7 +127,5 @@ unset PASEO_PASSWORD
 修改密码或需要重启的配置后使用 `sudo systemctl restart paseo`。升级前停止服务并备份 `~/.paseo`，升级 npm 包后重新启动；保留原版本的备份，以便处理状态迁移。
 
 页面 403 时检查 `daemon.hostnames`；页面能加载但连不上时检查密码与浏览器 WebSocket 连接。`paseo daemon status` 可能在短时间内显示 status RPC 超时，应结合 `/api/health`、systemd、日志与 `paseo provider models codex` 判断进程及 provider 是否正常，不要据此重复启动 daemon。
-
-回退到 CloudCLI：停止 Paseo，确认旧 CloudCLI 安装和数据库仍在，再启用 `cloudcli.service`；将主 Caddyfile 的 import 改回 `/etc/caddy/cloudcli.caddy`，校验并热加载。原 CloudCLI 的页面 / JWT 认证规则见 [历史部署文档](../claudecodeui/README.md)。
 
 参考：[Web UI](https://github.com/getpaseo/paseo/blob/main/public-docs/web-ui.md)、[配置](https://github.com/getpaseo/paseo/blob/main/public-docs/configuration.md)、[安全](https://github.com/getpaseo/paseo/blob/main/public-docs/security.md)。
