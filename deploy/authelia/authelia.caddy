@@ -1,0 +1,10 @@
+(authelia) {
+	forward_auth 127.0.0.1:9091 {
+		uri /api/authz/forward-auth
+	}
+}
+
+auth.20070809.xyz {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:9091
+}

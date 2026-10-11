@@ -1,0 +1,8 @@
+services:
+  authelia:
+    image: authelia/authelia@sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54
+    container_name: authelia
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /etc/authelia:/config

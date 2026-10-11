@@ -19,6 +19,8 @@
 
 ## 2. 本机部署实例
 
+**2026-10-11 认证变更：** 线上所有 21 个使用 Basic Auth 的站点已统一迁移到 Authelia Cookie 会话认证。登录入口为 `https://auth.20070809.xyz`，用户名 `admin`、密码沿用原 Caddy 密码。以下部署表及较早验证命令中的 Basic Auth 描述属于历史记录；当前部署、完整站点列表及回滚方法见 [Authelia 部署说明](../deploy/authelia/README.md)。Paseo 等原先未使用 Basic Auth 的站点保留原认证方式。
+
 当前 `/etc/caddy/Caddyfile`（`sudo caddy adapt` 可看展开后的完整站点清单）：
 
 | 主机 | 上游 | basicauth |

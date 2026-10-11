@@ -1,0 +1,52 @@
+# Authelia 统一会话认证
+
+2026-10-11 已在本机部署 Authelia v4.39.28，将原有 21 个 Basic Auth 站点统一迁移到 Cookie 会话认证。
+
+登录入口：https://auth.20070809.xyz 。用户名 `admin`，密码沿用原 Caddy 密码；直接复用原 bcrypt 哈希，不记录明文。
+
+保护站点：`20070809.xyz` 及其子域 `212`、`aion`、`alpaca`、`bili`、`bnb`、`clip`、`cpc`、`cr`、`credit`、`dl`、`douyin`、`dsh`、`ff`、`film`、`gh`、`iptv`、`jav`、`muse`、`prowlarr`、`tiktok`。
+
+Paseo、IBKR 和其他原先未使用 Basic Auth 的站点保留原配置。AionUi、dsh 等应用自身认证仍保留，Authelia 不会自动登录应用。
+
+## 部署
+
+- [compose.yaml](compose.yaml) 固定镜像摘要，使用 host 网络；Authelia 配置只监听 `127.0.0.1:9091`，没有公网服务端口。
+- 实际配置、账号哈希和 SQLite 数据保存在 `/etc/authelia`，目录权限 700，配置和账号文件权限 600，不入库。
+- 主 Caddyfile 导入 `/etc/caddy/authelia.caddy`；每个受保护站点使用 `import authelia` 代替 `basic_auth`。模板见 [authelia.caddy](authelia.caddy)。不向应用注入身份头，保留应用原有认证逻辑。
+- 授权默认拒绝，仅允许 `admin` 访问列出的站点，采用单因素密码登录。
+- Cookie 使用 `Secure`、`HttpOnly`、`SameSite=Lax`，域为 `20070809.xyz`；空闲 1 小时失效，普通会话 12 小时，勾选记住登录为 30 天。
+- 会话存储为单实例内存，容器重启后需重新登录。密码重置功能关闭，通知文件仅存本机。
+
+```bash
+sudo docker compose -f /home/ubuntu/agent/deploy/authelia/compose.yaml up -d
+sudo docker exec authelia authelia config validate --config /config/configuration.yml
+sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+sudo systemctl reload caddy
+curl -fsS http://127.0.0.1:9091/api/health
+```
+
+## 验证
+
+21 个站点未登录时均进入统一登录流程；noVNC 根路径先跳转到 `/vnc.html`，入口页同样受保护。源站 TLS 和公网登录页均正常。
+
+使用临时随机账号完成密码登录、Secure/HttpOnly Cookie、全部 21 个站点的会话授权和退出失效验证；验证后删除测试账号并恢复仅 `admin` 的授权。原 admin 哈希与迁移前一致。未持有原密码明文，因此未执行真实 admin 浏览器登录或逐个应用的完整交互验证。
+
+## 回滚
+
+原配置的私有备份位置记录在 `/etc/authelia/migration.json`。以下命令恢复主配置和所有原片段，验证后热重载：
+
+```bash
+sudo python3 - <<'PY'
+import json, pathlib, shutil, subprocess
+state = json.loads(pathlib.Path('/etc/authelia/migration.json').read_text())
+manifest = json.loads((pathlib.Path(state['backup']) / 'manifest.json').read_text())
+for target, source in manifest.items():
+    shutil.copyfile(source, target)
+subprocess.run(['caddy', 'validate', '--config', '/etc/caddy/Caddyfile', '--adapter', 'caddyfile'], check=True)
+subprocess.run(['systemctl', 'reload', 'caddy'], check=True)
+PY
+```
+
+恢复后可停止 Authelia 容器；保留私有数据及备份以便再次迁移。
+
+参考：[Authelia 的 Caddy 集成](https://www.authelia.com/integration/proxies/caddy/)、[会话配置](https://www.authelia.com/configuration/session/introduction/)。

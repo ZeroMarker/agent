@@ -6,9 +6,9 @@
 
 ## 登录和认证
 
-Caddy 弹窗和 AionUi 页面均使用用户名 `admin`，沿用其他站点已有的 Caddy 密码。已将原有 bcrypt 哈希同步到该站点 Caddy 配置和 AionUi 数据库，没有另设密码。此前部署时生成的独立密码已作废。
+2026-10-11 已将 Caddy Basic Auth 迁移到 [Authelia 统一登录](../../deploy/authelia/README.md)。访问站点先跳转到 `auth.20070809.xyz`，使用 `admin` 和原 Caddy 密码登录；AionUi 自身登录仍保留，账号密码沿用原配置。
 
-修改 AionUi 密码后，Caddy 密码不会自动同步，需要单独更新其 bcrypt 哈希。
+修改 AionUi 密码后，Authelia 密码不会自动同步，两者需分别维护。
 
 **本版本必须保留 Caddy 认证。** 实测独立启动器以 `aioncore --local` 运行：`/api/auth/user` 要求登录，但 `/api/conversations` 在无 Cookie 时仍返回 `200`。因此不能只依赖页面登录；Caddy 对全部页面、API 和 WebSocket 实施 Basic Auth。上游文档与本版本行为存在差异。
 
@@ -51,7 +51,7 @@ node node_modules/electron-vite/bin/electron-vite.js build \
   --config packages/desktop/electron.vite.config.ts
 ```
 
-配置模板：[systemd](deploy/aionui-webui.service)、[Caddy](deploy/aionui.caddy)。Caddy 模板中的密码占位符必须换成实际哈希，可在终端运行 `caddy hash-password` 交互输入密码。禁止把密码或真实哈希提交到仓库。
+配置模板：[systemd](deploy/aionui-webui.service)、[Caddy](deploy/aionui.caddy)。Caddy 模板依赖主配置导入 `/etc/caddy/authelia.caddy` 中的 `authelia` 片段。禁止把密码或真实哈希提交到仓库。
 
 复制模板到新服务器前，准备源码、依赖、前端产物与 Rust 后端，并创建权限 `700` 的日志目录。首次启动日志可能含管理员明文密码，因此服务使用私有文件日志而不是共享 journal。
 
