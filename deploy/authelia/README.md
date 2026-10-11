@@ -34,6 +34,27 @@ sudo systemctl reload caddy
 curl -fsS http://127.0.0.1:9091/api/health
 ```
 
+## 代理鉴权只接受 Cookie
+
+实际 `/etc/authelia/configuration.yml` 必须明确限制 `forward-auth` 的策略：
+
+```yaml
+server:
+  address: tcp://127.0.0.1:9091/
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+        authn_strategies:
+          - name: CookieSession
+```
+
+这只限制代理鉴权端点；登录门户仍使用账号密码建立会话，应用自身的 Authorization 请求头仍透传。
+
+2026-10-11 排查发现：默认 `forward-auth` 优先接受 `HeaderAuthorization`，浏览器在 Basic Auth 迁移后仍可能发送缓存凭据。页面 API 轮询因此反复校验原 bcrypt 哈希（cost 14），约 10 分钟内出现 600 次成功密码验证，容器 CPU 达到 171%。已将实际配置改为仅使用 `CookieSession`；旧 Basic 凭据不再参与代理鉴权，客户端需登录 Authelia。修正后 10 秒采样平均 CPU 为 0.2%，Docker 即时采样为 0.15%，采样期间未新增密码验证记录。
+
+参考：[认证端点策略与默认 Basic 缓存行为](https://www.authelia.com/configuration/miscellaneous/server-endpoints-authz/)。
+
 ## 运维
 
 ```bash
