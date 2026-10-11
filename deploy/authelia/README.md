@@ -8,6 +8,15 @@
 
 Paseo、IBKR 和其他原先未使用 Basic Auth 的站点保留原配置。AionUi、dsh 等应用自身认证仍保留，Authelia 不会自动登录应用。
 
+## 日常访问
+
+1. 打开任一受保护站点，浏览器跳转到统一登录页。
+2. 输入 `admin` 和迁移前的 Caddy 密码，登录后返回原站点。
+3. 在同一浏览器访问其他受保护站点时共享会话；应用自身要求登录时仍需完成其登录。
+4. 在 Authelia 登录门户退出后，统一会话失效。
+
+当前域名、上游和公开站点清单见 [Caddy 本机部署](../../notes/caddy.md#2-本机部署实例)。`curl -u` 不再用于这些站点的代理层认证。
+
 ## 部署
 
 - [compose.yaml](compose.yaml) 固定镜像摘要，使用 host 网络；Authelia 配置只监听 `127.0.0.1:9091`，没有公网服务端口。
@@ -24,6 +33,18 @@ sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 sudo systemctl reload caddy
 curl -fsS http://127.0.0.1:9091/api/health
 ```
+
+## 运维
+
+```bash
+sudo docker compose -f /home/ubuntu/agent/deploy/authelia/compose.yaml ps
+sudo docker logs --tail 50 authelia
+# 修改私有配置后先校验，再重启；重启会使现有会话失效
+sudo docker exec authelia authelia config validate --config /config/configuration.yml
+sudo docker compose -f /home/ubuntu/agent/deploy/authelia/compose.yaml restart authelia
+```
+
+备份时保存整个 `/etc/authelia`、Caddy 实际配置及迁移备份目录；SQLite 数据宜在容器停止时备份。真实密码、账号哈希、会话 Cookie 和通知内容均不提交到仓库。
 
 ## 验证
 

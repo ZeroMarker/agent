@@ -19,39 +19,56 @@
 
 ## 2. 本机部署实例
 
-**2026-10-11 认证变更：** 线上所有 21 个使用 Basic Auth 的站点已统一迁移到 Authelia Cookie 会话认证。登录入口为 `https://auth.20070809.xyz`，用户名 `admin`、密码沿用原 Caddy 密码。以下部署表及较早验证命令中的 Basic Auth 描述属于历史记录；当前部署、完整站点列表及回滚方法见 [Authelia 部署说明](../deploy/authelia/README.md)。Paseo 等原先未使用 Basic Auth 的站点保留原认证方式。
+2026-10-11 核对线上配置：原有 21 个 Basic Auth 站点已统一使用 Authelia Cookie 会话认证。登录入口为 [auth.20070809.xyz](https://auth.20070809.xyz)，用户名 `admin`、密码沿用迁移前的 Caddy 密码。会话策略、验证范围与回滚方法见 [Authelia 部署说明](../deploy/authelia/README.md)。
 
-当前 `/etc/caddy/Caddyfile`（`sudo caddy adapt` 可看展开后的完整站点清单）：
+当前站点清单（简写的主机名均属于 `20070809.xyz`）：
 
-| 主机 | 上游 | basicauth |
+| 主机 | 上游或文件目录 | 入口认证 |
 |---|---|---|
-| `20070809.xyz` | 127.0.0.1:8080（SysMon，默认） | 是 |
-| `tiktok.20070809.xyz` | 127.0.0.1:8766 | 是 |
-| `douyin.20070809.xyz` | 127.0.0.1:8001 | 是 |
-| `edit.20070809.xyz` | 127.0.0.1:8345 | 是 |
-| `netdata.20070809.xyz` | 127.0.0.1:19999 | 是 |
-| `212.20070809.xyz` | 127.0.0.1:8512 | 是 |
-| `dsh.20070809.xyz` | 127.0.0.1:3080 | 是 |
-| `cr.20070809.xyz` | 127.0.0.1:6080（Chromium noVNC） | 是 |
-| `ibkr.20070809.xyz` | 127.0.0.1:8081 | 否（免密） |
-| `film.20070809.xyz` | 静态文件 `/srv/filmcraft/current` | 是 |
-| `cli.20070809.xyz` | 127.0.0.1:6767（Paseo Web UI） | 否；API / WebSocket 使用 Paseo 密码 |
-| `aion.20070809.xyz` | 127.0.0.1:25808（AionUi WebUI） | 是；沿用已有 admin 密码 |
+| `20070809.xyz` | 127.0.0.1:8080（SysMon） | Authelia |
+| `212` | 127.0.0.1:8512 | Authelia |
+| `aion` | 127.0.0.1:25808（AionUi） | Authelia |
+| `alpaca` | 127.0.0.1:8091 | Authelia |
+| `bili` | 127.0.0.1:8767 | Authelia |
+| `bnb` | 127.0.0.1:8090 | Authelia |
+| `clip` | 127.0.0.1:8795 | Authelia |
+| `cpc` | 静态文件 /var/www/cpc | Authelia |
+| `cr` | 127.0.0.1:6080（Chromium/noVNC） | Authelia |
+| `credit` | 127.0.0.1:8722 | Authelia |
+| `dl` | 127.0.0.1:8733 | Authelia |
+| `douyin` | 127.0.0.1:8001 | Authelia |
+| `dsh` | 127.0.0.1:3080 | Authelia |
+| `ff` | 127.0.0.1:8345 | Authelia |
+| `film` | 静态文件 /srv/filmcraft/current | Authelia |
+| `gh` | 127.0.0.1:8092 | Authelia |
+| `iptv` | 127.0.0.1:8787 | Authelia |
+| `jav` | 127.0.0.1:3000 | Authelia |
+| `muse` | 静态文件 /srv/muse/current | Authelia |
+| `prowlarr` | 127.0.0.1:9696 | Authelia |
+| `tiktok` | 127.0.0.1:8766 | Authelia |
+| `auth` | 127.0.0.1:9091 | Authelia 登录入口 |
+| `cli` | 127.0.0.1:6767（Paseo） | 页面公开；API / WebSocket 使用 Paseo 密码 |
+| `ibkr` | 127.0.0.1:8081 | 无代理层认证 |
+| `card` | 静态文件 /srv/card/current | 无代理层认证 |
+| `road` | 静态文件 /srv/roaddash/current | 无代理层认证 |
+| `lingmolabs.com` | 127.0.0.1:8093 | 无代理层认证 |
+
+`www.lingmolabs.com` 重定向到主域；`http://127.0.0.1` 和 `http://localhost` 是本机预览入口。
 
 FilmCraft 的配置片段位于 `/etc/caddy/film.caddy`，由主配置导入；官方 Web 包直接托管，无需反向代理或额外应用服务。版本、校验值和验证结果见 [FilmCraft 网页版部署笔记](../software/filmcraft.md)。
 
 2026-10-10 已用 Paseo Web UI 替代 CloudCLI：配置片段为 `/etc/caddy/paseo.caddy`，后端由 `paseo.service` 管理。页面公开加载，API / WebSocket 使用 Paseo 原生密码认证，复用已有 Caddy 密码的哈希；不叠加 Basic Auth。安装与验证见 [Paseo Web UI 部署文档](../tools/paseo/web-ui.md)。
 
-AionUi 的片段位于 `/etc/caddy/aionui.caddy`，由 `aionui-webui.service` 管理独立 WebUI。实测此版本的部分 API 在本地模式下免认证，因此 Caddy 必须保护整个站点；部署、凭据位置与验证见 [AionUi 文档](../tools/aionui/README.md)。
+AionUi 的片段位于 `/etc/caddy/aionui.caddy`，由 `aionui-webui.service` 管理独立 WebUI。实测此版本的部分 API 在本地模式下免认证，因此 Caddy 必须通过 Authelia 保护整个站点；部署、凭据位置与验证见 [AionUi 文档](../tools/aionui/README.md)。
 
 结构说明：
 
-- 每个应用一个独立子域名，在自己根路径运行，站点块里直接 `reverse_proxy`，不再使用旧的路径前缀代理。`cr` 仅额外把根路径重定向到 noVNC 入口页。
+- 每个应用一个独立子域名，在自己根路径运行；动态服务使用 `reverse_proxy`，静态应用使用 `file_server`，不再使用旧的路径前缀代理。`cr` 仅额外把根路径重定向到 noVNC 入口页。
 - 站名即 `20070809.xyz` 的子域，需在 Cloudflare 为每个子域加 A/AAAA 指向本机，否则 Caddy 无法签发证书。
-- `encode gzip` 压缩响应；`basicauth { admin <hash> }` 为多数子站点套同一套账号；`ibkr` 免密（继承原 `/public` 豁免）；Paseo 使用自身密码认证 API / WebSocket，静态登录页公开。
+- `encode gzip` 或 `encode zstd gzip` 压缩响应；主配置导入 `/etc/caddy/authelia.caddy`，受保护站点通过 `import authelia` 验证会话；`ibkr` 免密（继承原 `/public` 豁免）；Paseo 使用自身密码认证 API / WebSocket，静态登录页公开。
 - 旧路径代理（`/tiktok` `/douyin` `/edit` `/netdata` `/212` `/public/ibkr`）已全部移除，改为子域名；旧路径访问已失效。
 - `dsh.20070809.xyz` 承载 dsh web：它是**绝对根路径 SPA**（`/assets` `/plugins` `/api`/WebSocket 都以 `/` 为基准），无法与 `20070809.xyz` 根路径（被 SysMon 占用 `/api`·`/manifest`）共存于同一主机，故用独立子域名。
-- `cr.20070809.xyz` 反代 Chromium 的 noVNC 服务；访问根路径会跳转到自动连接、按比例缩放的 `/vnc.html`，WebSocket 由 Caddy 自动透传。公网入口使用共享 Basic Auth，VNC 自身密码已关闭；noVNC 端口仅监听回环地址，不能直接暴露公网。
+- `cr.20070809.xyz` 反代 Chromium 的 noVNC 服务；访问根路径会跳转到自动连接、按比例缩放的 `/vnc.html`，WebSocket 由 Caddy 自动透传。公网入口使用 Authelia Cookie 会话认证，VNC 自身密码已关闭；noVNC 端口仅监听回环地址，不能直接暴露公网。
 
 **dsh web 注意**：跑在 systemd `dsh-web.service` 下（`dsh web --no-open --host 127.0.0.1 --port 3080 --trusted-host dsh.20070809.xyz`，开机自启，崩溃自动重启），版本为 `@deepseek-ai/dsh@0.2.0-rc.2`（全局 npm 装于 pi-node 的 node 下；2026-10-10 从 `0.1.7-rc.2` 升级 npm `latest` 并重启服务，验证认证后 Web UI 及模型目录接口正常）。opencode 相关已移除：`oc.20070809.xyz` 站点、`opencode-usage.service`（`/opt/opencode-usage`）、`~/.dsh/profiles/web` 对 `@dsh-ltctfer/dsh-opencode-go-usage` 的依赖/`cordis.patch.yml` 插入项及 `/tmp/dsh-opencode-go-usage` 源码均已删除——该插件（上游最新 0.1.1）引用了已被删除的 `installSettingsSection`，在新版下启动即 crash-loop（`SyntaxError ... does not provide an export named 'installSettingsSection'`），正是此前钉在旧版的原因；移除后升级一次启动成功。公网访问有**两道门**：① 服务端 `/api` browser-trust fence 认 Host，`--trusted-host` 已放行公网域名（缺它时所有 `/api` 走公网都是 403）；② 设置/提供方目录页还有**客户端门**——前端按浏览器地址栏算 `isLoopback`（仅 `localhost`/`127/8`/`::1` 算回环），公网域名打开时设置 mirror 强制 `unavailable`，报 `settings are unavailable in this browser`，服务端改不了。结论：聊天主界面走公网子域名；**改模型/供应商/凭证必须用回环地址开页面**——本机直接开 `http://127.0.0.1:3080`，远程则 `ssh -L 3080:127.0.0.1:3080 ubuntu@<本机IP>` 后在自己电脑开 `http://127.0.0.1:3080`。
 
@@ -61,7 +78,7 @@ AionUi 的片段位于 `/etc/caddy/aionui.caddy`，由 `aionui-webui.service` �
 journalctl -u dsh-web.service --no-pager | grep -o 'token=[A-Za-z0-9_-]*' | tail -1
 ```
 
-- 打开 `http://127.0.0.1:3080/?token=<值>`（公网为 `https://dsh.20070809.xyz/?token=<值>`，先过 Caddy Basic Auth）→ 303 并 `Set-Cookie: dsh-auth-<kid>=v1.<payload>.<sig>`，之后同一浏览器不再需要 token。
+- 打开 `http://127.0.0.1:3080/?token=<值>`（公网为 `https://dsh.20070809.xyz/?token=<值>`，先通过 Authelia 登录）→ 303 并 `Set-Cookie: dsh-auth-<kid>=v1.<payload>.<sig>`，之后同一浏览器不再需要 token。
 - cookie 载荷里的 `authority` 绑定签发来源的 host：按回环签发的 cookie 拿到公网域名用是 401，反之亦然；有效期 30 天（`Max-Age=2592000`），`HttpOnly; SameSite=Strict`。
 - token 本身不落盘（`~/.dsh` 内无副本），服务重启后必须重新从日志取。
 - 本笔记不记录 token 值：仓库公开（`github.com/ZeroMarker/agent`），需要时按上面命令现取。
@@ -81,13 +98,14 @@ systemctl status caddy --no-pager                 # 服务运行状态
 sudo ss -lntup | grep -E ':(80|443)\b'            # 80/443 监听情况
 # 子域名未加 DNS 前，直接探测后端可通性：
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8766/   # tiktok 后端
-# DNS 生效后访问子域名（除 ibkr 外需 admin 密码）：
-curl -k -u admin:<密码> -o /dev/null -w '%{http_code}\n' https://tiktok.20070809.xyz/
-curl -k -o /dev/null -w '%{http_code}\n' https://ibkr.20070809.xyz/   # 免密
-# Chromium/noVNC：根路径 302；未认证访问入口页为 401；本机后端为 200
-curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/
-curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/vnc.html
-curl -o /dev/null -w '%{http_code}\n' http://127.0.0.1:6080/vnc.html
+# 未登录访问受保护站点，302 跳转到 Authelia（不再使用 curl -u）：
+curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://tiktok.20070809.xyz/
+curl -sS -o /dev/null -w '%{http_code}\n' https://auth.20070809.xyz/  # 200
+curl -sS -o /dev/null -w '%{http_code}\n' https://ibkr.20070809.xyz/  # 无代理层认证
+# Chromium/noVNC：根路径先跳转到入口页；入口页未认证时跳转到 Authelia
+curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://cr.20070809.xyz/
+curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://cr.20070809.xyz/vnc.html
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:6080/vnc.html  # 本机后端 200
 ```
 
 证书存放位置：

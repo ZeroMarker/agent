@@ -10,7 +10,7 @@ Playwright、Puppeteer 或其他 Agent 接入。支持 Docker Compose 和原生 
 
 ```text
 https://cr.20070809.xyz
-  -> Caddy HTTPS + Basic Auth
+  -> Caddy HTTPS + Authelia forward_auth
   -> 127.0.0.1:6080 (noVNC/WebSocket)
   -> 127.0.0.1:5900 (x11vnc，无 VNC 密码)
   -> Xvfb :99 + Fluxbox + Chromium
@@ -22,7 +22,7 @@ Agent -> 127.0.0.1:9222 (CDP，仅本机)
 |---|---|
 | systemd 服务 | `browser-desktop.service`，已启用并运行 |
 | 公网入口 | `https://cr.20070809.xyz` |
-| 公网认证 | Caddy Basic Auth |
+| 公网认证 | [Authelia Cookie 会话](../../deploy/authelia/README.md) |
 | VNC 认证 | 已关闭（`VNC_AUTH=false`） |
 | VNC 空闲降频 | 已关闭（`x11vnc -nonap`） |
 | noVNC | `127.0.0.1:6080` |
@@ -78,7 +78,7 @@ sudo ./install-systemd.sh
 安装脚本会安装 Chromium、Xvfb、Fluxbox、x11vnc、websockify 等依赖，并把经过
 SHA-256 校验的上游 noVNC 静态资源安装到 `/opt/browser-desktop/novnc`。脚本默认生成一个随机的
 8 字符 VNC 密码并启动服务。密码及其他配置位于 `/etc/default/browser-desktop`；本机实例
-因已有 Caddy Basic Auth，另行设置了 `VNC_AUTH=false`。
+由 Caddy 提供外层认证（当前为 Authelia），另行设置了 `VNC_AUTH=false`。
 Ubuntu 的 Chromium Snap 无法在普通 system service cgroup 中启动，因此安装脚本会使用
 Playwright 提供的 Chromium 构建；Debian 使用发行版原生 `chromium` 软件包。浏览器以
 独立低权限用户运行，并默认关闭 Chromium sandbox，以兼容 Ubuntu 的 user namespace 限制。
@@ -339,19 +339,17 @@ ssh -L 6080:127.0.0.1:6080 -L 9222:127.0.0.1:9222 user@server
 ```
 
 不要把 CDP 端口直接暴露到公网；CDP 本身没有认证，拿到该端口通常就能完整控制
-浏览器及其登录态。当前实例的 VNC 密码已关闭，安全边界是回环监听和 Caddy Basic Auth；
+浏览器及其登录态。当前实例的 VNC 密码已关闭，安全边界是回环监听和 Caddy + Authelia 会话认证；
 若绕过 Caddy 暴露 noVNC，等同于公开浏览器桌面。
 
 ## Caddy 反向代理
 
-当前站点配置的关键结构如下，WebSocket 无需额外指令：
+主 Caddyfile 须先导入 `/etc/caddy/authelia.caddy`，认证服务部署见 [Authelia 说明](../../deploy/authelia/README.md)。当前站点配置的关键结构如下，WebSocket 握手同样经过会话认证：
 
 ```caddyfile
 cr.20070809.xyz {
     encode gzip
-    basicauth {
-        admin <bcrypt-hash>
-    }
+    import authelia
     redir / /vnc.html?autoconnect=1&resize=scale&quality=6&compression=2 302
     reverse_proxy 127.0.0.1:6080
 }
@@ -364,5 +362,5 @@ systemctl is-active browser-desktop caddy
 curl http://127.0.0.1:6080/vnc.html                    # 200
 curl http://127.0.0.1:9222/json/version                # CDP JSON
 curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/          # 302
-curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/vnc.html  # 401（未认证）
+curl -o /dev/null -w '%{http_code}\n' https://cr.20070809.xyz/vnc.html  # 302（未认证，跳转到 Authelia）
 ```

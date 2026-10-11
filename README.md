@@ -9,6 +9,7 @@
 | [`notes/`](notes/) | 单篇实践笔记（工具列表、API 笔记、环境搭建） |
 | [`cli-tools/`](cli-tools/) | 各类 CLI 工具的安装、认证、常用命令与 Agent 使用说明 |
 | [`tools/`](tools/) | 工具/编码代理的使用指南文档 |
+| [`deploy/`](deploy/) | 本机部署配置、统一认证与回滚说明 |
 | [`projects/`](projects/) | 可运行的示例项目（源码与实验） |
 | [`skills/`](skills/) | Agent Skills 集合 |
 | `browser/` `phone/` `software/` `workflow/` | 分类主题索引 |
@@ -28,6 +29,10 @@
 - [Computer](notes/computer.md)：Cloudflare Computer 架构与使用笔记。
 - [DeepSeek Harness 文档导航](notes/dsh-文档导航.md)：deepseek-ai/deepseek-harness 仓库 docs/ 的结构化导航与阅读路径整理。
 - [Codex 插件与技能清理教训](notes/codex-教训.md)：记录技能误触发、插件层级识别、CLI 卸载和清理验证方法。
+
+## 部署与认证（deploy/）
+
+- [Authelia 统一会话认证](deploy/authelia/README.md)：21 个 Caddy 站点的统一登录、Cookie 策略、部署模板、验证及回滚。
 
 ## CLI 工具（cli-tools/）
 

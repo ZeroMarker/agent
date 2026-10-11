@@ -10,7 +10,7 @@
 
 修改 AionUi 密码后，Authelia 密码不会自动同步，两者需分别维护。
 
-**本版本必须保留 Caddy 认证。** 实测独立启动器以 `aioncore --local` 运行：`/api/auth/user` 要求登录，但 `/api/conversations` 在无 Cookie 时仍返回 `200`。因此不能只依赖页面登录；Caddy 对全部页面、API 和 WebSocket 实施 Basic Auth。上游文档与本版本行为存在差异。
+**本版本必须保留 Caddy 认证。** 实测独立启动器以 `aioncore --local` 运行：`/api/auth/user` 要求登录，但 `/api/conversations` 在无 Cookie 时仍返回 `200`。因此不能只依赖页面登录；Caddy 对全部页面、API 和 WebSocket 通过 Authelia `forward_auth` 验证会话。上游文档与本版本行为存在差异。
 
 ## 部署结构
 
@@ -61,7 +61,7 @@ sudo install -m 644 tools/aionui/deploy/aionui-webui.service \
 sudo systemctl daemon-reload
 sudo systemctl enable --now aionui-webui
 
-# 填好 /etc/caddy/aionui.caddy 的哈希，主配置导入该片段后：
+# 先部署 Authelia，并在主配置导入认证片段及 /etc/caddy/aionui.caddy：
 sudo caddy fmt --overwrite /etc/caddy/aionui.caddy
 sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 sudo caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
@@ -69,7 +69,9 @@ sudo caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
 
 ## 运维
 
-初次部署验证：前端生产构建成功，浏览器完成页面登录并进入 `#/guid`，登录 Cookie 的 WebSocket 连接成功，服务重启后凭据仍有效。随后纠正密码配置：Caddy 与 AionUi 均复用已有 admin 哈希，旧的独立密码作废；公网无凭据页面和 API 返回 `401`。纠正后未获取已有密码明文，验证范围为哈希一致、旧密码被拒绝和服务正常启动。Caddy 验证通过，HTTPS 证书已签发。
+2026-10-10 初次部署记录（当时使用 Basic Auth）：前端生产构建成功，浏览器完成页面登录并进入 `#/guid`，登录 Cookie 的 WebSocket 连接成功，服务重启后凭据仍有效。随后纠正密码配置：Caddy 与 AionUi 均复用已有 admin 哈希，旧的独立密码作废；公网无凭据页面和 API 返回 `401`。纠正后未获取已有密码明文，验证范围为哈希一致、旧密码被拒绝和服务正常启动。Caddy 验证通过，HTTPS 证书已签发。
+
+2026-10-11 迁移后：未登录的页面和 API 均由 Authelia 拦截，浏览器访问跳转到统一登录页；会话授权及退出验证见 [统一认证验证记录](../../deploy/authelia/README.md#验证)。应用自身的完整浏览器交互未在迁移时重测。
 
 ```bash
 systemctl status aionui-webui --no-pager

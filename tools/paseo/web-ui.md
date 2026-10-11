@@ -17,7 +17,7 @@
 | 运行时配置 | `/etc/systemd/system/paseo.service`、`/etc/caddy/paseo.caddy` |
 | DNS / TLS | 现有 Cloudflare wildcard DNS、Caddy 自动 HTTPS |
 
-打开页面后，在 **Paseo 自己的登录界面**输入原 Caddy `admin` 账号使用的密码，无需用户名。配置复用了原 Caddy 的 bcrypt 哈希，没有记录明文。页面静态资源可公开加载，代理数据和操作由 Paseo 密码认证保护；Caddy 不再叠加 Basic Auth，以免与应用 Bearer 头冲突。
+打开页面后，在 **Paseo 自己的登录界面**输入原 Caddy `admin` 账号使用的密码，无需用户名。配置复用了原 Caddy 的 bcrypt 哈希，没有记录明文。页面静态资源可公开加载，代理数据和操作由 Paseo 密码认证保护；此站点未纳入 2026-10-11 的 [Authelia 迁移](../../deploy/authelia/README.md)，继续使用 Paseo 原生认证。
 
 0.11.2 的首次自动探测不带密码，可能回到 **Connect** 页面。此时选择直连：Host 为 `cli.20070809.xyz`、端口 **443**、启用 TLS，并输入相同密码；浏览器随后保存连接。`6767` 是服务器回环端口，不用于公网连接。
 

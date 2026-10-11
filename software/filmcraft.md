@@ -25,15 +25,15 @@ FilmCraft 是 Rust 编写的视频编辑软件，其 WebAssembly 版本可作为
 
 ## Caddy 配置
 
-下面是配置结构；密码散列只保留在服务器配置中，不写入公开仓库。
+下面是当前配置结构；账号和密码散列由服务器上的 Authelia 私有配置管理。
+
+主 Caddyfile 需先导入 `/etc/caddy/authelia.caddy`；统一登录及回滚说明见 [Authelia 部署文档](../deploy/authelia/README.md)。
 
 ```caddyfile
 film.20070809.xyz {
     root * /srv/filmcraft/current
     encode zstd gzip
-    basic_auth {
-        admin <沿用现有站点的密码散列>
-    }
+    import authelia
     header {
         Cross-Origin-Opener-Policy same-origin
         Cross-Origin-Embedder-Policy require-corp
@@ -57,7 +57,7 @@ WASM、JavaScript 和 HTML 已预生成 gzip 文件；WASM 原始大小为 40,75
 ## 验证结果与使用范围
 
 - Caddy 配置校验通过，并已热重载。
-- Caddy 成功获取 `film.20070809.xyz` 的 HTTPS 证书；公网未登录访问返回 `401` 和 Basic Auth 验证头。
+- Caddy 成功获取 `film.20070809.xyz` 的 HTTPS 证书；2026-10-11 迁移后，公网未登录访问返回 `302`，跳转到 Authelia 登录页。
 - 使用临时回环 Caddy 服务及 Chromium 测试官方包：页面 `200`，WASM 初始化与应用启动完成，`window.filmcraft` API 可用，没有页面脚本错误；画面显示预览、素材库和时间线。
 - 回环测试确认 WASM 类型、gzip 与跨源隔离响应头；临时测试服务已关闭。
 
