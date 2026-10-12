@@ -39,7 +39,6 @@
 | `douyin` | 127.0.0.1:8001 | Authelia |
 | `dsh` | 127.0.0.1:3080 | Authelia |
 | `ff` | 127.0.0.1:8345 | Authelia |
-| `film` | 静态文件 /srv/filmcraft/current | Authelia |
 | `gh` | 127.0.0.1:8092 | Authelia |
 | `iptv` | 127.0.0.1:8787 | Authelia |
 | `jav` | 127.0.0.1:3000 | Authelia |
@@ -55,7 +54,6 @@
 
 `www.lingmolabs.com` 重定向到主域；`http://127.0.0.1` 和 `http://localhost` 是本机预览入口。
 
-FilmCraft 的配置片段位于 `/etc/caddy/film.caddy`，由主配置导入；官方 Web 包直接托管，无需反向代理或额外应用服务。版本、校验值和验证结果见 [FilmCraft 网页版部署笔记](../software/filmcraft.md)。
 
 2026-10-10 已用 Paseo Web UI 替代 CloudCLI：配置片段为 `/etc/caddy/paseo.caddy`，后端由 `paseo.service` 管理。页面公开加载，API / WebSocket 使用 Paseo 原生密码认证，复用已有 Caddy 密码的哈希；不叠加 Basic Auth。安装与验证见 [Paseo Web UI 部署文档](../tools/paseo/web-ui.md)。
 
