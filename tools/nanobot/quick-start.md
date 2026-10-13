@@ -18,7 +18,7 @@ export PATH=$PATH:~/.local/bin
 
 | 项目 | 值 |
 | --- | --- |
-| 版本 | v0.3.0（PyPI 包 `nanobot-ai`，uv tool 安装） |
+| 版本 | v0.3.5（2026-10-13 升级，PyPI 包 `nanobot-ai`，uv tool 安装） |
 | 可执行文件 | `~/.local/bin/nanobot` |
 | 配置 | `~/.nanobot/config.json` |
 | 工作空间 | `~/.nanobot/workspace`（Git 存储，含 SOUL.md/AGENTS.md/USER.md/HEARTBEAT.md） |

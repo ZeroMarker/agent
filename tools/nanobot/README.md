@@ -4,7 +4,7 @@
 
 - GitHub: https://github.com/HKUDS/nanobot
 - 文档: https://nanobot.wiki
-- 版本: v0.3.0
+- 版本: v0.3.5
 - Stars: 44k+
 - 语言: Python
 
