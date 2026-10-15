@@ -176,6 +176,22 @@ esac
 3. 配置修改后检查 `paseo reload --json` 返回值，并重新打开对应终端。
 4. 命令或版本异常时运行 `paseo provider diagnostic codex --json`；再结合 `~/.paseo/daemon.log` 检查错误。
 
+## 使用情况列表
+
+使用情况列表由 0.11.2 内置的 usage-source 插件提供，与 `config.json` 无关。插件清单见安装包 `@getpaseo/server/dist/server/server/plugins/builtin/index.js`：Claude、Codex、Copilot、Cursor、Grok、Kimi、MiniMax、opencode-go、Z.ai。插件在 daemon 启动时扫描本机凭据，找到才显示对应条目，因此列表可能出现未主动配置的服务。
+
+| 条目 | 凭据查找顺序 |
+|---|---|
+| GitHub Copilot | 环境变量 `COPILOT_TOKEN`、`GITHUB_TOKEN`、`GITHUB_PAT`，然后 `~/.config/gh/hosts.yml` |
+| MiniMax | 环境变量 `MINIMAX_API_KEY`，然后 `~/.mmx/credentials.json`、`~/.mmx/config.json` |
+
+本机情况（2026-10-15）：
+
+- Copilot 来自 `gh` CLI 登录留下的 `~/.config/gh/hosts.yml`，没有 Copilot 订阅也会被识别。为保留 `gh` 登录，未处理。
+- MiniMax 来自已卸载的 `mmx` CLI 遗留的 `~/.mmx/config.json`。卸载程序不会删除配置目录；删除 `~/.mmx` 并 `paseo restart` 后不再识别。
+
+去掉某个条目时，删除或移走对应凭据，再执行 `paseo restart`。插件只在启动时扫描，`reload` 不会重新发现账号。
+
 ## 参考入口
 
 - [Paseo 官方文档](https://paseo.sh/docs)
