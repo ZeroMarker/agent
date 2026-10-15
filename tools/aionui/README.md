@@ -6,7 +6,7 @@
 
 ## 登录和认证
 
-2026-10-11 已将 Caddy Basic Auth 迁移到 [Authelia 统一登录](../../deploy/authelia/README.md)。访问站点先跳转到 `auth.20070809.xyz`，使用 `admin` 和原 Caddy 密码登录；AionUi 自身登录仍保留，账号密码沿用原配置。
+2026-10-11 已将 Caddy Basic Auth 迁移到 [Authelia 统一登录](../../deploy/authelia/README.md)。访问站点先跳转到 `auth.20070809.xyz`，使用 Authelia 账号 `mark` 登录（2026-10-15 由 `admin` 更换）；AionUi 自身登录仍保留，账号密码沿用原配置。
 
 修改 AionUi 密码后，Authelia 密码不会自动同步，两者需分别维护。
 
