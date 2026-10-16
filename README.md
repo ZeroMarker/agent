@@ -40,7 +40,7 @@
 - [cloudflare-cli](cli-tools/cloudflare-cli/index.md)：Cloudflare 统一 CLI `cf` 的安装、认证、部署、Pages Drop/Direct Upload、命令总览和全局参数。
 - [dsh 模型目录补齐](cli-tools/dsh/README.md)：dsh 内置 OpenCode Go 模型目录落后于实时接口时，用 `sync-go-models.py` 补齐并验证。
 - [Harlequin / hsql](cli-tools/harlequin/index.md)：终端 SQL IDE 与面向 Agent 的无界面 SQL CLI；安装、数据库适配器、配置、查询导出与排障。
-- [lark-cli](cli-tools/lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明；本机已部署（云文档授权），含豆包个人账户授权受限排障。
+- [lark-cli](cli-tools/lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明；本机已部署（推荐权限集），含豆包个人账户授权受限排障。
 - [MiniMax CLI / mmx](cli-tools/minimax-cli/index.md)：MiniMax 官方多模态 CLI；安装、双区域认证、文本/图像/视频/语音生成、转写、搜索和 Agent 配置。
 - [OpenCLI](cli-tools/opencli/index.md)：把任意网站变成 CLI 并让 Agent 用已登录 Chrome 操作网页的统一工具——内置 100+ 站点 adapter、browser 原语、CLI Hub 与插件。
 - [pikpaktui](cli-tools/pikpaktui/index.md)：PikPak 云盘的纯 Rust 终端客户端（TUI + 28 个子命令），支持非交互登录与 `--json`，对 Agent 友好。

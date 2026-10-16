@@ -65,12 +65,14 @@ lark-cli auth login --scope "calendar:calendar:read"
 npm install -g @larksuite/cli
 npx -y skills add https://open.feishu.cn --skill -g -y   # 28 个 lark-* skills → ~/.agents/skills，软链到 ~/.claude/skills
 lark-cli config init --new          # 浏览器中创建应用，凭证写入 ~/.lark-cli/config.json
-lark-cli auth login --domain docs   # 当前仅授权云文档域
+lark-cli auth login --recommend     # 推荐权限集（先用 --domain docs 验证过）
 lark-cli auth status
 ```
 
 - 安装 Skills 时必须加 `-g`；否则会装到当前目录的 `.agents/`。
-- 当前用户身份只授权了云文档域（docx 读写/创建、文档媒体、文档搜索、知识库节点读取、画板）。需要其他能力时按域追加，例如 `lark-cli auth login --domain calendar`。
+- 已通过 `--recommend` 授予消息、文档/云空间/知识库、多维表格、表格、幻灯片、日历、任务、邮箱、审批、OKR、妙记/会议等常用权限，可增量追加。
+- 唯一未授予的是 `vc:meeting.realtime:read`（实时会议内容），企业管理员禁止申请，CLI 标记为“不可申请，勿重试”。
+- 用户 access token 有效期约 2 小时，会自动刷新；refresh token 约 7 天。超过 7 天未使用需重新 `auth login`。
 
 ### Agent 内执行要点
 
