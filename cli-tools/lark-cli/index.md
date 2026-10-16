@@ -57,6 +57,36 @@ lark-cli auth login --scope "calendar:calendar:read"
 
 命令可通过 `--as user` 或 `--as bot` 选择用户或机器人身份。应遵循最小权限原则，不要把 App Secret、访问令牌或设备码写入仓库。
 
+## 本机部署记录（2026-10）
+
+按[飞书 CLI 安装指南](https://open.feishu.cn/document/no_class/mcp-archive/feishu-cli-installation-guide)安装，版本 1.0.98：
+
+```bash
+npm install -g @larksuite/cli
+npx -y skills add https://open.feishu.cn --skill -g -y   # 28 个 lark-* skills → ~/.agents/skills，软链到 ~/.claude/skills
+lark-cli config init --new          # 浏览器中创建应用，凭证写入 ~/.lark-cli/config.json
+lark-cli auth login --domain docs   # 当前仅授权云文档域
+lark-cli auth status
+```
+
+- 安装 Skills 时必须加 `-g`；否则会装到当前目录的 `.agents/`。
+- 当前用户身份只授权了云文档域（docx 读写/创建、文档媒体、文档搜索、知识库节点读取、画板）。需要其他能力时按域追加，例如 `lark-cli auth login --domain calendar`。
+
+### Agent 内执行要点
+
+- `config init --new` 会阻塞等待浏览器完成配置，应在后台运行并从输出中提取 `https://open.feishu.cn/page/cli?user_code=...` 链接发给用户。链接有效期约 15 分钟，重跑会生成新链接。
+- `auth login` 用 `--no-wait --json` 获取 `verification_url` 和 `device_code`。用户完成授权后，再执行 `lark-cli auth login --device-code <code>`。每次重新发起都会使上一个链接失效。
+- `lark-cli auth qrcode <url> --output /tmp/xx.png` 可生成授权二维码。
+
+### 排障：豆包个人账户无法授权
+
+用豆包个人账户登录的飞书，属于平台统一管理的受限组织：
+
+- `config init --new` 可能报 `code 21001`：`The requested scope is blocked by data security policy ... platform policy`。
+- `auth login` 授权页显示“当前无需开通或授权任何权限”。实际上是申请的 scope 全部被策略过滤掉了，随后报 `These permissions are restricted by your organization's security policy`。缩小到 `--domain docs` 也一样。
+
+这类账户无法自行放开限制，用户也不能修改策略。解决办法是改用普通飞书账户（自己是管理员的团队）重新执行 `config init --new` 和 `auth login`。或者只用 bot 身份，把文档共享给应用后操作。
+
 ## 常用命令
 
 ```bash
