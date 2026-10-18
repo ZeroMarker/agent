@@ -179,7 +179,7 @@ context = browser.new_context(
 )
 ```
 
-- 指纹随机化 / stealth 补丁：本仓库 [`browser/mcp_web_search`](../browser/index.md) 就是 Playwright + playwright-stealth 做 Google 搜索反爬，CLI / MCP 两种模式。
+- 指纹随机化 / stealth 补丁：Playwright + `playwright-stealth` 常用于做反爬搜索这类场景，需自行实现并维护该部分代码。
 - 需要大量不重复指纹时：随机 UA + 随机 viewport + 随机时区，每次新建 context。
 
 ### 异步版本
@@ -219,4 +219,4 @@ Python 有 `async_playwright`（同 API，await 风格）；Node 全异步。两
 - 官方文档：https://playwright.dev/docs/intro
 - Python API：https://playwright.dev/python/docs/api/class-playwright
 - Trace Viewer：https://playwright.dev/docs/trace-viewer
-- 本仓库相关：`browser/mcp_web_search`（Playwright + stealth 反爬搜索）、`skills/open-websearch`（Playwright 模式）
+- 本仓库相关：[`skills/open-websearch`](../skills/open-websearch/)（Playwright 模式）

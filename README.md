@@ -35,18 +35,18 @@
 
 ## CLI 工具（cli-tools/）
 
-- [bilibili-cli](cli-tools/bilibili-cli/index.md)：B 站终端 CLI 的安装、浏览/搜索/互动命令和 Agent 使用说明。
-- [cloudflare-cli](cli-tools/cloudflare-cli/index.md)：Cloudflare 统一 CLI `cf` 的安装、认证、部署、Pages Drop/Direct Upload、命令总览和全局参数。
+- [bilibili-cli](cli-tools/bilibili-cli/README.md)：B 站终端 CLI 的安装、浏览/搜索/互动命令和 Agent 使用说明。
+- [cloudflare-cli](cli-tools/cloudflare-cli/README.md)：Cloudflare 统一 CLI `cf` 的安装、认证、部署、Pages Drop/Direct Upload、命令总览和全局参数。
 - [dsh 模型目录补齐](cli-tools/dsh/README.md)：dsh 内置 OpenCode Go 模型目录落后于实时接口时，用 `sync-go-models.py` 补齐并验证。
-- [Harlequin / hsql](cli-tools/harlequin/index.md)：终端 SQL IDE 与面向 Agent 的无界面 SQL CLI；安装、数据库适配器、配置、查询导出与排障。
-- [lark-cli](cli-tools/lark-cli/index.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明；本机已部署（推荐权限集），含豆包个人账户授权受限排障。
-- [MiniMax CLI / mmx](cli-tools/minimax-cli/index.md)：MiniMax 官方多模态 CLI；安装、双区域认证、文本/图像/视频/语音生成、转写、搜索和 Agent 配置。
-- [OpenCLI](cli-tools/opencli/index.md)：把任意网站变成 CLI 并让 Agent 用已登录 Chrome 操作网页的统一工具——内置 100+ 站点 adapter、browser 原语、CLI Hub 与插件。
-- [pikpaktui](cli-tools/pikpaktui/index.md)：PikPak 云盘的纯 Rust 终端客户端（TUI + 28 个子命令），支持非交互登录与 `--json`，对 Agent 友好。
-- [rdt-cli](cli-tools/rdt-cli/index.md)：Reddit 终端 CLI 的安装、浏览器 Cookie 认证、浏览/搜索/互动命令和 Agent 使用说明。
-- [weibo-cli](cli-tools/weibo-cli/index.md)：微博开放平台官方 CLI（@weibo-ai/weibo-cli）的安装、设备码认证、微博/评论/搜索/用户命令和 Agent 使用说明。
-- [xiaohongshu-cli](cli-tools/xiaohongshu-cli/index.md)：小红书终端 CLI 的安装、三种认证方式（浏览器 Cookie/扫码）、搜索/阅读/互动/发布命令和 Agent 使用说明。
-- [zhihu-cli](cli-tools/zhihu-cli/index.md)：知乎开放平台官方 CLI 的安装、Access Secret 认证、搜索/热榜/直答/本人数据命令和 Agent 使用说明。
+- [Harlequin / hsql](cli-tools/harlequin/README.md)：终端 SQL IDE 与面向 Agent 的无界面 SQL CLI；安装、数据库适配器、配置、查询导出与排障。
+- [lark-cli](cli-tools/lark-cli/README.md)：飞书官方命令行工具的安装、认证、常用命令和 Agent 使用说明；本机已部署（推荐权限集），含豆包个人账户授权受限排障。
+- [MiniMax CLI / mmx](cli-tools/minimax-cli/README.md)：MiniMax 官方多模态 CLI；安装、双区域认证、文本/图像/视频/语音生成、转写、搜索和 Agent 配置。
+- [OpenCLI](cli-tools/opencli/README.md)：把任意网站变成 CLI 并让 Agent 用已登录 Chrome 操作网页的统一工具——内置 100+ 站点 adapter、browser 原语、CLI Hub 与插件。
+- [pikpaktui](cli-tools/pikpaktui/README.md)：PikPak 云盘的纯 Rust 终端客户端（TUI + 28 个子命令），支持非交互登录与 `--json`，对 Agent 友好。
+- [rdt-cli](cli-tools/rdt-cli/README.md)：Reddit 终端 CLI 的安装、浏览器 Cookie 认证、浏览/搜索/互动命令和 Agent 使用说明。
+- [weibo-cli](cli-tools/weibo-cli/README.md)：微博开放平台官方 CLI（@weibo-ai/weibo-cli）的安装、设备码认证、微博/评论/搜索/用户命令和 Agent 使用说明。
+- [xiaohongshu-cli](cli-tools/xiaohongshu-cli/README.md)：小红书终端 CLI 的安装、三种认证方式（浏览器 Cookie/扫码）、搜索/阅读/互动/发布命令和 Agent 使用说明。
+- [zhihu-cli](cli-tools/zhihu-cli/README.md)：知乎开放平台官方 CLI 的安装、Access Secret 认证、搜索/热榜/直答/本人数据命令和 Agent 使用说明。
 
 ## 工具使用指南（tools/）
 
@@ -66,19 +66,18 @@
 - [gh-codespace](skills/gh-codespace/SKILL.md)：GitHub Codespace 的查看/启动/连接、SSH 直连、命令执行与文件传输、pi agent 配置和 gh 登录修复。
 - [mdbook](skills/mdbook/SKILL.md)：mdbook 项目初始化、`list.yaml` 条目与标签管理、GitHub Actions 部署。
 - [open-websearch](skills/open-websearch/SKILL.md)：open-websearch 的安装配置与实时检索，优先本地 CLI/daemon，兼容 MCP 工具。
-- [web-search](skills/web-search/SKILL.md)：通过 mcp_web_search 绕过 Google 反爬获取搜索结果。
 - [x-id-research](skills/x-id-research/SKILL.md)：根据 X (Twitter) ID 抓取资料、联网补充并整理成结构化创作者档案。
 
 ## 分类主题索引
 
-- [浏览器自动化](browser/index.md)：浏览器控制、网页任务执行和测试相关工具。
+- [浏览器自动化](browser/README.md)：浏览器控制、网页任务执行和测试相关工具。
 - [Chromium 桌面浏览器](browser/desktop-browser/README.md)：Xvfb + Fluxbox + Chromium + noVNC 的远程桌面浏览器，开放 CDP 端口供 Playwright 等 Agent 接入；支持 Docker Compose 与 systemd 部署。
-- [手机 Agent](phone/index.md)：移动端自动化与手机操作 Agent 项目。
+- [手机 Agent](phone/README.md)：移动端自动化与手机操作 Agent 项目。
 - [软件工具](software/blender.md)：具体软件的 Agent 化、自动化或创作流程笔记。
 - [ArtCraft](software/artcraft.md)：AI 图像与视频创作工作台；2D/3D 构图、安装入口、生成流程、模型接入、费用与许可证说明。
 - [storytold / ArtCraft 项目导航](software/storytold.md)：41 个公开仓库的分类索引；Craft 创作与办公应用、服务端、Agent/MCP 入口、实验项目与第三方 fork。
 - [rclone](rclone/README.md)：云存储命令行管理、PikPak 挂载（systemd 服务）与常用操作。
-- [工作流编排](workflow/index.md)：低代码、自动化编排和 Agent workflow 平台。
+- [工作流编排](workflow/README.md)：低代码、自动化编排和 Agent workflow 平台。
 
 ## 整理规范
 

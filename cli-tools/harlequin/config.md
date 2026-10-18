@@ -1,6 +1,6 @@
 # Harlequin 配置与连接
 
-[返回导航](index.md) · [hsql 与 Agent](hsql.md)
+[返回导航](README.md) · [hsql 与 Agent](hsql.md)
 
 本文以 Harlequin 2.15.0 为基准。`harlequin` 和 `hsql` 共用 TOML 配置与 Profile，一份连接配置可同时用于 IDE 和脚本。
 
@@ -72,7 +72,7 @@ conn_str = ["./analytics.duckdb"]
 
 ## 远程连接与环境变量
 
-先安装 [所需适配器](index.md#数据库连接与适配器)。以下为 PostgreSQL Profile 示例，数据库和用户须实际存在：
+先安装 [所需适配器](README.md#数据库连接与适配器)。以下为 PostgreSQL Profile 示例，数据库和用户须实际存在：
 
 ```toml
 [profiles.warehouse]

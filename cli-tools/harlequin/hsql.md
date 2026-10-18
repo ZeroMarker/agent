@@ -1,6 +1,6 @@
 # hsql：脚本与 Agent 的 SQL CLI
 
-[返回导航](index.md) · [配置与连接](config.md)
+[返回导航](README.md) · [配置与连接](config.md)
 
 `hsql` 随 Harlequin 安装，自 2.9.0 引入。本文以 2.15.0 为基准。命令执行 SQL 后退出，stdout 输出数据，stderr 输出说明、警告和错误；数据库适配器与 Profile 和 IDE 共用。
 
