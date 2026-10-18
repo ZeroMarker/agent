@@ -184,6 +184,7 @@ esac
 |---|---|
 | GitHub Copilot | 环境变量 `COPILOT_TOKEN`、`GITHUB_TOKEN`、`GITHUB_PAT`，然后 `~/.config/gh/hosts.yml` |
 | MiniMax | 环境变量 `MINIMAX_API_KEY`，然后 `~/.mmx/credentials.json`、`~/.mmx/config.json` |
+| OpenCode Go | `$XDG_DATA_HOME/opencode/auth.json`；未设置时为 `~/.local/share/opencode/auth.json`，读取 `opencode-go` 下的 `type: "api"` 和 `key` |
 
 本机情况（2026-10-15）：
 
@@ -191,6 +192,66 @@ esac
 - MiniMax 来自已卸载的 `mmx` CLI 遗留的 `~/.mmx/config.json`。卸载程序不会删除配置目录；删除 `~/.mmx` 并 `paseo restart` 后不再识别。
 
 去掉某个条目时，删除或移走对应凭据，再执行 `paseo restart`。插件只在启动时扫描，`reload` 不会重新发现账号。
+
+### OpenCode 2 更新 Key 后，Go 用量仍无法显示
+
+2026-10-18 本机验证：**Paseo 0.11.2 + OpenCode 2.0.28** 存在凭据存储兼容问题。OpenCode 2 将凭据写入 `~/.local/share/opencode/opencode.db` 的 `credential` 表，Paseo 的 Go 用量插件仍只读取旧的 `auth.json`，不会读取数据库，也不会使用 `OPENCODE_API_KEY` 环境变量。
+
+此次旧文件的修改时间停在 2026-08-19。旧 Key 请求 `https://opencode.ai/zen/go/v1/usage` 返回 `401 / api_key_expired`；数据库内当前启用的新 Key 请求同一接口返回 `200`。因此，即使 `/connect` 已更新成功，Paseo 仍会使用过期的 Key。仅重启 Paseo 无法解决文件内容过旧的问题。
+
+排查时先确认 Paseo 服务的运行用户、`HOME` 和 `XDG_DATA_HOME`，再比较旧文件的修改时间与数据库中当前启用的凭据。不要只根据 `auth.json` 的返回结果判断 OpenCode 当前登录是否有效。接口明确返回 `api_key_expired` 时需要在 OpenCode Console 创建新 Key；重新登录不会续期旧 Key。
+
+临时处理：将数据库中当前启用的 Go Key 同步到旧格式文件。下面脚本适用于上述已验证版本，使用当前用户的数据目录，保留其他服务的凭据，备份原文件，并以仅当前用户可读写的权限原子替换文件。以与 Paseo 相同的用户和数据目录执行；不要用 `sudo` 切换到 root，也不要将 Key 或备份提交到仓库。
+
+```bash
+python3 - <<'PY'
+import json
+import os
+import sqlite3
+import tempfile
+from datetime import datetime, timezone
+from pathlib import Path
+
+data = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share") / "opencode"
+auth = data / "auth.json"
+db = sqlite3.connect((data / "opencode.db").as_uri() + "?mode=ro", uri=True)
+try:
+    rows = db.execute(
+        "SELECT value FROM credential WHERE integration_id = ? AND active = 1",
+        ("opencode-go",),
+    ).fetchall()
+finally:
+    db.close()
+if len(rows) != 1:
+    raise SystemExit("需要且只能有一个启用的 OpenCode Go 凭据，请先在 OpenCode 中确认当前账号")
+credential = json.loads(rows[0][0])
+if credential.get("type") != "key" or not isinstance(credential.get("key"), str) or not credential["key"]:
+    raise SystemExit("凭据格式与已验证版本不同，停止同步")
+original = auth.read_bytes() if auth.exists() else None
+content = json.loads(original) if original is not None else {}
+content["opencode-go"] = {"type": "api", "key": credential["key"]}
+if original is not None:
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    backup = auth.with_name(f"auth.json.bak-{stamp}")
+    with os.fdopen(os.open(backup, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "wb") as f:
+        f.write(original)
+    print("原文件已备份至", backup)
+fd, temporary = tempfile.mkstemp(prefix=".auth-", dir=data)
+try:
+    with os.fdopen(fd, "w") as f:
+        json.dump(content, f, indent=2)
+        f.write("\n")
+    os.replace(temporary, auth)
+finally:
+    if os.path.exists(temporary):
+        os.unlink(temporary)
+print("已同步当前 OpenCode Go Key，未输出凭据内容")
+PY
+```
+
+同步后刷新 Paseo 用量页面。本机以插件相同的 Node.js `fetch` 请求方式验证，兼容文件中的 Key 已返回 `200`。插件每次获取用量都会重新读取文件，因此已有 Go 条目无需为更换 Key 重启；如果此前没有对应条目，需重启以重新发现账号。此次 Python 默认 User-Agent 请求曾被 Cloudflare 返回 `403 / browser_signature_banned`，应区分该访问拦截与 API Key 认证失败。
+
+这是一次性兼容处理；以后更换 Key 或切换 Go 账号仍需同步，直到 Paseo 支持 OpenCode 2 的凭据存储。升级版本后先检查插件实现，勿假设上述数据库结构和同步步骤始终适用。备份同样包含敏感凭据，确认恢复后可删除不再需要的备份。
 
 ## 参考入口
 
