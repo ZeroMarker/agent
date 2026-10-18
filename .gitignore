@@ -6,7 +6,7 @@
 # Jina Reader 源码克隆（仅本地参考）
 /reader/
 
-# Python 虚拟环境（projects/swarm 等）
+# Python 虚拟环境与运行产物
 .venv/
 __pycache__/
 *.egg-info/

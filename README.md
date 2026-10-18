@@ -10,7 +10,6 @@
 | [`cli-tools/`](cli-tools/) | 各类 CLI 工具的安装、认证、常用命令与 Agent 使用说明 |
 | [`tools/`](tools/) | 工具/编码代理的使用指南文档 |
 | [`deploy/`](deploy/) | 本机部署配置、统一认证与回滚说明 |
-| [`projects/`](projects/) | 可运行的示例项目（源码与实验） |
 | [`skills/`](skills/) | Agent Skills 集合 |
 | `browser/` `phone/` `software/` `workflow/` | 分类主题索引 |
 
@@ -60,10 +59,6 @@
 - [ZeroClaw](tools/zeroclaw/)：基于 Rust 的快速 AI 助手，多频道、多模型、自主运行。
 - [WeClaw](tools/weclaw/)：使用说明文档。
 - [Agent Mail](tools/agent-mail/)：腾讯 Agent Mail —— 专为 AI Agent 设计的邮箱服务 CLI。
-
-## 示例项目（projects/）
-
-- [Agent Swarm](projects/swarm/)：LangGraph + DeepSeek Supervisor 多 Agent 最小实践（Research / Coding / Review，确定性调度 + `max_steps` 防循环）。
 
 ## Agent Skills（skills/）
 
