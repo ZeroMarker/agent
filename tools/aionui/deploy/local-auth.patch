@@ -1,0 +1,111 @@
+diff --git a/packages/desktop/src/renderer/hooks/context/AuthContext.tsx b/packages/desktop/src/renderer/hooks/context/AuthContext.tsx
+--- a/packages/desktop/src/renderer/hooks/context/AuthContext.tsx
++++ b/packages/desktop/src/renderer/hooks/context/AuthContext.tsx
+@@ -47,7 +47,9 @@
+ 
+ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+ 
+-const AUTH_USER_ENDPOINT = '/api/auth/user';
++// The ordinary middleware resolves local mode as well as cookie sessions.
++// The separate auth router requires cookies even when aioncore uses --local.
++const AUTH_USER_ENDPOINT = '/api/system/current-user';
+ 
+ const isDesktopRuntime = typeof window !== 'undefined' && Boolean(window.electronAPI);
+ 
+@@ -113,10 +115,10 @@
+ 
+     const data = (await response.json()) as {
+       success: boolean;
+-      user?: AuthUser;
++      data?: AuthUser;
+     };
+-    if (data.success && data.user) {
+-      return data.user;
++    if (data.success && data.data) {
++      return data.data;
+     }
+   } catch (error) {
+     if ((error as Error).name === 'AbortError') {
+diff --git a/public/sw.js b/public/sw.js
+--- a/public/sw.js
++++ b/public/sw.js
+@@ -2,7 +2,7 @@
+ // (index.html) for failed script requests, causing "module script MIME text/html"
+ // errors when the server was down or served a different asset hash. The v2
+ // activate handler deletes v1, flushing any poisoned cached entries.
+-const CACHE_NAME = 'aionui-webui-v2';
++const CACHE_NAME = 'aionui-webui-v3-local-auth';
+ const NON_CACHEABLE_PATHS = new Set(['/qr-login']);
+ const OFFLINE_PAGE_URL = new URL('./index.html', self.location.href).toString();
+ const PRECACHE_URLS = [
+diff --git a/tests/unit/renderer/authCurrentUser.dom.test.tsx b/tests/unit/renderer/authCurrentUser.dom.test.tsx
+--- /dev/null
++++ b/tests/unit/renderer/authCurrentUser.dom.test.tsx
+@@ -0,0 +1,67 @@
++import React from 'react';
++import { cleanup, render, screen, waitFor } from '@testing-library/react';
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
++
++vi.mock('@/common/adapter/sessionRefresh', () => ({ refreshSession: vi.fn(async () => false) }));
++vi.mock('@/renderer/pages/conversation/Preview/context/previewScope', () => ({
++  PREVIEW_SCOPE_KEY_PREFIX: 'preview-ui:',
++}));
++
++describe('WebUI current user', () => {
++  beforeEach(() => {
++    vi.resetModules();
++    Reflect.deleteProperty(window, 'electronAPI');
++  });
++
++  afterEach(() => {
++    cleanup();
++    vi.unstubAllGlobals();
++  });
++
++  async function renderAuth() {
++    const { AuthProvider, useAuth } = await import('@renderer/hooks/context/AuthContext');
++    function Status() {
++      const { status, user } = useAuth();
++      return <div>{`${status}:${user?.id ?? ''}`}</div>;
++    }
++    render(
++      <AuthProvider>
++        <Status />
++      </AuthProvider>
++    );
++  }
++
++  it('opens the existing local identity without an application login cookie', async () => {
++    const fetchMock = vi.fn(
++      async () =>
++        new Response(
++          JSON.stringify({ success: true, data: { id: 'system_default_user', username: 'system_default_user' } })
++        )
++    );
++    vi.stubGlobal('fetch', fetchMock);
++    await renderAuth();
++    await screen.findByText('authenticated:system_default_user');
++    expect(fetchMock.mock.calls[0]).toEqual([
++      '/api/system/current-user',
++      expect.objectContaining({ credentials: 'include' }),
++    ]);
++  });
++
++  it('keeps the login requirement when the backend rejects the session', async () => {
++    vi.stubGlobal(
++      'fetch',
++      vi.fn(async () => new Response('{}', { status: 401 }))
++    );
++    await renderAuth();
++    await screen.findByText('unauthenticated:');
++  });
++
++  it('does not accept an unsuccessful current-user response', async () => {
++    vi.stubGlobal(
++      'fetch',
++      vi.fn(async () => new Response(JSON.stringify({ success: false })))
++    );
++    await renderAuth();
++    await waitFor(() => expect(screen.getByText('unauthenticated:')).toBeTruthy());
++  });
++});

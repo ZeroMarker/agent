@@ -1,5 +1,10 @@
 aion.20070809.xyz {
 	encode zstd gzip
+	# Let existing installations update their worker even after session expiry.
+	handle /sw.js {
+		header Cache-Control no-store
+		reverse_proxy 127.0.0.1:25808
+	}
 	# The manifest and icons contain no account data.
 	@pwa path /manifest.webmanifest /pwa/*
 	handle @pwa {
@@ -9,9 +14,11 @@ aion.20070809.xyz {
 	handle {
 		route {
 			import authelia
+			@document path / /index.html
+			header @document Cache-Control no-cache
 
 			# aioncore --local uses this identity for API and WebSocket requests.
-			# Adapt the renderer's separate auth check only after Authelia approval.
+			# Compatibility for older cached renderers, after Authelia approval.
 			handle /api/auth/user {
 				header Content-Type application/json
 				header Cache-Control no-store
