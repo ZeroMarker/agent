@@ -1,5 +1,26 @@
 aion.20070809.xyz {
 	encode zstd gzip
-	import authelia
-	reverse_proxy 127.0.0.1:25808
+	# The manifest and icons contain no account data.
+	@pwa path /manifest.webmanifest /pwa/*
+	handle @pwa {
+		reverse_proxy 127.0.0.1:25808
+	}
+
+	handle {
+		route {
+			import authelia
+
+			# aioncore --local uses this identity for API and WebSocket requests.
+			# Adapt the renderer's separate auth check only after Authelia approval.
+			handle /api/auth/user {
+				header Content-Type application/json
+				header Cache-Control no-store
+				respond `{"success":true,"user":{"id":"system_default_user","username":"admin"}}` 200
+			}
+
+			handle {
+				reverse_proxy 127.0.0.1:25808
+			}
+		}
+	}
 }

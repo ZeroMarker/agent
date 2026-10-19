@@ -6,11 +6,11 @@
 
 ## 登录和认证
 
-2026-10-11 已将 Caddy Basic Auth 迁移到 [Authelia 统一登录](../../deploy/authelia/README.md)。访问站点先跳转到 `auth.20070809.xyz`，使用 Authelia 账号 `mark` 登录（2026-10-15 由 `admin` 更换）；AionUi 自身登录仍保留，账号密码沿用原配置。
+2026-10-11 已将 Caddy Basic Auth 迁移到 [Authelia 统一登录](../../deploy/authelia/README.md)。访问站点先跳转到 `auth.20070809.xyz`，使用 Authelia 账号 `mark` 登录（2026-10-15 由 `admin` 更换）。2026-10-19 移除了 AionUi 网页的第二层密码登录：统一登录通过后直接进入原有本地账号的聊天界面。
 
-修改 AionUi 密码后，Authelia 密码不会自动同步，两者需分别维护。
+后端继续以 `aioncore --local` 运行，API 和 WebSocket 使用 `system_default_user`。其独立认证路由 `/api/auth/user` 仍要求 Cookie，因此 Caddy 在 Authelia 授权成功后，为该精确路径返回同一本地用户的网页会话信息，并设置 `Cache-Control: no-store`。原密码哈希与聊天数据保留，不再需要输入 AionUi 密码。此适配仅适用于当前单用户本地模式；切换后端身份模式或多用户部署时必须移除。
 
-**本版本必须保留 Caddy 认证。** 实测独立启动器以 `aioncore --local` 运行：`/api/auth/user` 要求登录，但 `/api/conversations` 在无 Cookie 时仍返回 `200`。因此不能只依赖页面登录；Caddy 对全部页面、API 和 WebSocket 通过 Authelia `forward_auth` 验证会话。上游文档与本版本行为存在差异。
+**本版本必须保留 Caddy 认证。** 实测独立启动器以 `aioncore --local` 运行：`/api/conversations` 在无 Cookie 时仍返回 `200`。Caddy 对页面、API（包括上述会话适配）和 WebSocket 通过 Authelia `forward_auth` 验证会话；只有 PWA manifest 和图标公开，以便浏览器读取安装信息。
 
 ## 部署结构
 
@@ -72,6 +72,8 @@ sudo caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
 2026-10-10 初次部署记录（当时使用 Basic Auth）：前端生产构建成功，浏览器完成页面登录并进入 `#/guid`，登录 Cookie 的 WebSocket 连接成功，服务重启后凭据仍有效。随后纠正密码配置：Caddy 与 AionUi 均复用已有 admin 哈希，旧的独立密码作废；公网无凭据页面和 API 返回 `401`。纠正后未获取已有密码明文，验证范围为哈希一致、旧密码被拒绝和服务正常启动。Caddy 验证通过，HTTPS 证书已签发。
 
 2026-10-11 迁移后：未登录的页面和 API 均由 Authelia 拦截，浏览器访问跳转到统一登录页；会话授权及退出验证见 [统一认证验证记录](../../deploy/authelia/README.md#验证)。应用自身的完整浏览器交互未在迁移时重测。
+
+2026-10-19 单次登录验证：通过独立回环 Caddy 测试实例模拟外层认证通过，在全新浏览器上下文中直接进入 `#/guid`，原有会话列表可见、无 JavaScript 异常，刷新和旧 `#/login` 链接均进入主页，无 Cookie 的 WebSocket 握手成功。生产配置验证并热重载后，未登录的页面、会话适配、会话列表和 WebSocket 路径仍跳转 Authelia。公网真实账号的登录后流程未自动重测。
 
 ```bash
 systemctl status aionui-webui --no-pager

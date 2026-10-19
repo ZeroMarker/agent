@@ -6,7 +6,7 @@
 
 保护站点：`20070809.xyz` 及其子域 `212`、`aion`、`alpaca`、`bili`、`bnb`、`clip`、`cpc`、`cr`、`credit`、`dl`、`douyin`、`dsh`、`ff`、`film`、`gh`、`iptv`、`jav`、`muse`、`prowlarr`、`tiktok`。
 
-Paseo、IBKR 和其他原先未使用 Basic Auth 的站点保留原配置。AionUi、dsh 等应用自身认证仍保留，Authelia 不会自动登录应用。
+Paseo、IBKR 和其他原先未使用 Basic Auth 的站点保留原配置。dsh 等应用自身认证仍保留，Authelia 不会自动登录应用。AionUi 于 2026-10-19 增加了针对本地模式的代理适配，统一登录后直接进入原有账号，见 [AionUi 登录说明](../../tools/aionui/README.md#登录和认证)。
 
 ## 日常访问
 
