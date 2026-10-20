@@ -20,6 +20,7 @@
 
 ## 文档目录
 
+- [竞品对比](competitors.md) - OpenClaw、ZeroClaw、PicoClaw、NanoClaw、NullClaw、AstrBot 与 WeClaw 的定位、取舍和选型
 - [快速开始](quick-start.md) - 安装与配置
 - [命令参考](commands.md) - 所有 CLI 命令
 - [配置指南](config.md) - config.json 配置详解
